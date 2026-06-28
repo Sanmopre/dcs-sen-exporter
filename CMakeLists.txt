@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 list(APPEND CMAKE_PREFIX_PATH "$ENV{SEN_PATH}/cmake")
 find_package(sen REQUIRED)
 
+# Add submodules
 add_subdirectory(submodules/spdlog)
 add_subdirectory(submodules/cli11)
 
@@ -20,9 +21,7 @@ src/main.cpp)
 #        ${PROJECT_NAME}
 #        HLA_FOM_DIRS
 #        "$ENV{STD_FOM_PATH}/fom/rpr"
-#        "$ENV{STD_FOM_PATH}/fom/netn"
 #        "$ENV{STD_FOM_PATH}/fom/mapping"
-#        "$ENV{STD_FOM_PATH}/fom/link16"
 #        HLA_MAPPINGS_FILE
 #        "$ENV{STD_FOM_PATH}/fom/mapping/mapping.xml"
 #)
@@ -35,3 +34,5 @@ target_link_libraries(${PROJECT_NAME}
         spdlog::spdlog
         CLI11::CLI11
 )
+
+target_include_directories(${PROJECT_NAME} PUBLIC submodules/json/include)
