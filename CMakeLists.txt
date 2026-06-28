@@ -14,17 +14,20 @@ add_subdirectory(submodules/spdlog)
 add_subdirectory(submodules/cli11)
 
 add_executable(${PROJECT_NAME}
-src/main.cpp)
+src/main.cpp
+        src/platform_manager.cpp
+        src/platform_manager.h
+        src/data_definitions.h)
 
-#sen_generate_cpp(
-#        TARGET
-#        ${PROJECT_NAME}
-#        HLA_FOM_DIRS
-#        "$ENV{STD_FOM_PATH}/fom/rpr"
-#        "$ENV{STD_FOM_PATH}/fom/mapping"
-#        HLA_MAPPINGS_FILE
-#        "$ENV{STD_FOM_PATH}/fom/mapping/mapping.xml"
-#)
+sen_generate_cpp(
+        TARGET
+        ${PROJECT_NAME}
+        HLA_FOM_DIRS
+        "$ENV{STD_FOM_PATH}/fom/rpr"
+        "$ENV{STD_FOM_PATH}/fom/mapping"
+        HLA_MAPPINGS_FILE
+        "$ENV{STD_FOM_PATH}/fom/mapping/mapping.xml"
+)
 
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
