@@ -48,7 +48,7 @@ int main(int argc, char** argv)
 
     std::string line;
     Recording recording;
-    // Try to reserve the memory given the number of lines in the file
+    // Ideally try to reserve the memory given the number of lines in the file
 
     while (std::getline(file, line))
     {
@@ -76,6 +76,10 @@ int main(int argc, char** argv)
 
 
     std::unordered_map<u64, std::shared_ptr<PlatformManager>> entities;
+
+
+
+
 
     return 0;
 }

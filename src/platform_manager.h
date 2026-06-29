@@ -9,6 +9,9 @@
 // data_definitions
 #include "data_definitions.h"
 
+// sen_util
+#include "sen/util/dr/settable_dead_reckoner.h"
+
 class PlatformManager : public rpr::PlatformBase<>
 {
 public:
@@ -17,6 +20,8 @@ public:
 
     void updateSpatial(const SpatialData& data);
 
+private:
+    sen::util::SettableDeadReckoner<rpr::PlatformBase<>> dr_;
 };
 
 
