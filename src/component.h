@@ -12,6 +12,7 @@
 // spdlog
 #include "spdlog/spdlog.h"
 
+
 class DcsComponent : public sen::kernel::Component
 {
 public:
@@ -25,6 +26,9 @@ public:
 
 public:
     void newFrame(const FrameData& frame);
+
+private:
+    [[nodiscard]] static std::string sanitizeName(const std::string& name);
 
 private:
     spdlog::logger* logger_;

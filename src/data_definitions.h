@@ -17,8 +17,17 @@ struct SpatialData
     f64 roll;
 };
 
+enum PlatformType : u8
+{
+    AIRCRAFT = 1,
+    GROUND_VEHICLE = 2,
+    SURFACE_VESSEL = 3,
+    MUNITION = 4
+};
+
 struct PlatformData
 {
+    PlatformType type;
     std::string name;
     u64 id;
     SpatialData spatial;

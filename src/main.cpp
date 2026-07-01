@@ -68,12 +68,12 @@ int main(int argc, char** argv)
 
         data.frameNumber = frame["frame"];
         data.time = frame["t"];
-        logger->info("{}", data.time);
-        data.platforms.reserve(frame["aircraft"].size());
+        data.platforms.reserve(frame["units"].size());
 
-        for (const auto& aircraft : frame["aircraft"])
+        for (const auto& aircraft : frame["units"])
         {
             PlatformData platformData;
+            platformData.type = aircraft["level1"];
             platformData.name = aircraft["name"];
             platformData.id = aircraft["id"];
             platformData.spatial.latitude = aircraft["lat"];
@@ -143,24 +143,29 @@ int main(int argc, char** argv)
 
     f64 currentTime = 0;
     u64 recordingFrame = 0;
-
+    const f64 finalTime = recording.back().time;
+    bool recordingFinished = false;
 
     // Kernel loop
-    while (currentTime < recording.back().time)
+    while (!recordingFinished)
     {
-        constexpr f64 stepTime = 0.001;
-        kernel_->step();
-
-        if (recording[recordingFrame].time == currentTime)
+        if (recording[recordingFrame].time <= currentTime)
         {
             component_->newFrame(recording[recordingFrame]);
             recordingFrame++;
         }
 
+        constexpr f64 stepTime = 0.001;
+        kernel_->step();
         currentTime += stepTime;
+
+        if (finalTime <= currentTime)
+        {
+            recordingFinished = true;
+        }
     }
 
-    logger->info("Finished recording {} time {}", currentTime,  recording.back().time);
+    logger->info("Finished conversion");
 
     return 0;
 }

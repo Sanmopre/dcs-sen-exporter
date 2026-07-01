@@ -5,6 +5,28 @@ local out = nil
 local probe = nil
 local frame = 0
 
+local function sanitize_filename(s)
+    s = tostring(s or "unknown_mission")
+    s = s:gsub("\\", "/")
+    s = s:match("([^/]+)$") or s
+    s = s:gsub("%.miz$", "")
+    s = s:gsub('[<>:"/\\|?*]', "_")
+    s = s:gsub("%s+", "_")
+    return s
+end
+
+local function make_recording_name()
+    local mission = "unknown_mission"
+
+    if LoGetMissionFilename then
+        mission = LoGetMissionFilename() or mission
+    end
+
+    local stamp = os.date("%Y-%m-%d_%H-%M-%S")
+
+    return sanitize_filename(mission) .. "_" .. stamp .. ".ndjson"
+end
+
 local function num(v)
     if v == nil then
         return 0
@@ -29,21 +51,16 @@ local function probe_write(msg)
 end
 
 function LuaExportStart()
-    probe = io.open(base .. "export_probe.txt", "w")
-    if probe then
-        probe_write("LuaExportStart")
-        probe_write("writedir=" .. lfs.writedir())
-        if LoIsObjectExportAllowed then
-            probe_write("object_export_allowed=" .. tostring(LoIsObjectExportAllowed()))
-        end
-    end
+    local filename = make_recording_name()
+    local fullpath = base .. filename
 
-    out = io.open(base .. "world_frames.ndjson", "w")
+    out = io.open(fullpath, "w")
+
     if out then
         out:flush()
-        probe_write("opened_output=" .. base .. "world_frames.ndjson")
+        probe_write("opened_output=" .. fullpath)
     else
-        probe_write("FAILED_TO_OPEN world_frames.ndjson")
+        probe_write("FAILED_TO_OPEN " .. fullpath)
     end
 end
 
@@ -53,10 +70,6 @@ function LuaExportAfterNextFrame()
     local t = 0
     if LoGetModelTime then
         t = num(LoGetModelTime())
-    end
-
-    if probe and (frame == 1 or frame % 120 == 0) then
-        probe_write(string.format("frame=%d t=%.6f", frame, t))
     end
 
     if not out then
@@ -76,24 +89,49 @@ function LuaExportAfterNextFrame()
         return
     end
 
-    out:write(string.format("{\"frame\":%d,\"t\":%.6f,\"aircraft\":[", frame, t))
+    out:write(string.format(
+        "{\"frame\":%d,\"t\":%.6f,\"units\":[",
+        frame,
+        t))
 
     local first = true
 
     for id, obj in pairs(objects) do
-        if obj and obj.Type and obj.LatLongAlt and obj.Type.level1 == 1 then
+        if obj and obj.Type and obj.LatLongAlt then
+
             if not first then
                 out:write(",")
             end
             first = false
 
             out:write(string.format(
-                "{\"id\":%d,\"name\":%s,\"lat\":%.8f,\"lon\":%.8f,\"alt\":%.2f,\"yaw\":%.6f,\"pitch\":%.6f,\"roll\":%.6f}",
+                "{\"id\":%d," ..
+                "\"name\":%s," ..
+                "\"level1\":%d," ..
+                "\"level2\":%d," ..
+                "\"country\":%d," ..
+                "\"coalition\":%d," ..
+                "\"lat\":%.8f," ..
+                "\"lon\":%.8f," ..
+                "\"alt\":%.2f," ..
+                "\"yaw\":%.6f," ..
+                "\"pitch\":%.6f," ..
+                "\"roll\":%.6f}",
+
                 id,
+
                 jstr(obj.Name),
+
+                num(obj.Type.level1),
+                num(obj.Type.level2),
+
+                num(obj.Country),
+                num(obj.CoalitionID),
+
                 num(obj.LatLongAlt.Lat),
                 num(obj.LatLongAlt.Long),
                 num(obj.LatLongAlt.Alt),
+
                 num(obj.Heading),
                 num(obj.Pitch),
                 num(obj.Bank)
