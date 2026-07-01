@@ -15,8 +15,8 @@ add_subdirectory(submodules/cli11)
 
 add_executable(${PROJECT_NAME}
 src/main.cpp
-        src/platform_manager.cpp
-        src/platform_manager.h
+        src/physical_entity_manager.cpp
+        src/physical_entity_manager.h
         src/data_definitions.h
         src/component.cpp
         src/component.h)

@@ -17,7 +17,7 @@
 #include <string>
 
 // platform manager
-#include "platform_manager.h"
+#include "physical_entity_manager.h"
 
 // sen
 #include "sen/kernel/test_kernel.h"

@@ -4,7 +4,7 @@
 #include "data_definitions.h"
 
 // platform manager
-#include "platform_manager.h"
+#include "physical_entity_manager.h"
 
 // sen
 #include "sen/kernel/component.h"
@@ -35,6 +35,6 @@ private:
     const sen::Duration& tickDuration_;
 
 private:
-    std::unordered_map<u64, std::shared_ptr<PlatformManager>> managers_;
+    std::unordered_map<u64, std::shared_ptr<PhysicalEntityManager>> managers_;
     std::shared_ptr<sen::ObjectSource> source_;
 };

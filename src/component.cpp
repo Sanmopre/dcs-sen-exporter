@@ -48,20 +48,19 @@ void DcsComponent::newFrame(const FrameData &frame)
             switch (platform.type)
             {
                 case PlatformType::AIRCRAFT:
-                    managers_.try_emplace(platform.id,std::make_shared<rpr::AircraftBase<PlatformManager>>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
+                    managers_.try_emplace(platform.id,std::make_shared<rpr::AircraftBase<rpr::PlatformBase<PhysicalEntityManager>>>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
                     break;
                 case PlatformType::GROUND_VEHICLE:
-                   managers_.try_emplace(platform.id,std::make_shared<rpr::GroundVehicleBase<PlatformManager>>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
+                   managers_.try_emplace(platform.id,std::make_shared<rpr::GroundVehicleBase<rpr::PlatformBase<PhysicalEntityManager>>>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
                     break;
                 case PlatformType::SURFACE_VESSEL:
-                    managers_.try_emplace(platform.id,std::make_shared<rpr::SurfaceVesselBase<PlatformManager>>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
+                    managers_.try_emplace(platform.id,std::make_shared<rpr::SurfaceVesselBase<rpr::PlatformBase<PhysicalEntityManager>>>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
                     break;
                 case PlatformType::MUNITION:
-                    //TODO: Manage munition properly
-                    managers_.try_emplace(platform.id,std::make_shared<rpr::SurfaceVesselBase<PlatformManager>>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
+                    managers_.try_emplace(platform.id,std::make_shared<rpr::MunitionBase<PhysicalEntityManager>>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
                     break;
                 default:
-                    managers_.try_emplace(platform.id,std::make_shared<PlatformManager>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
+                    managers_.try_emplace(platform.id,std::make_shared<PhysicalEntityManager>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
             }
 
             managers_.at(platform.id)->updateSpatial(platform.spatial);
@@ -69,6 +68,7 @@ void DcsComponent::newFrame(const FrameData &frame)
         }
     }
 
+    // Delete entities that
     std::vector<u64> toDelete;
     toDelete.reserve(managers_.size());
     for (const auto& [key, manager] : managers_)

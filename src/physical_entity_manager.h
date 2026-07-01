@@ -12,16 +12,16 @@
 // sen_util
 #include "sen/util/dr/settable_dead_reckoner.h"
 
-class PlatformManager : public rpr::PlatformBase<>
+class PhysicalEntityManager : public rpr::PhysicalEntityBase<>
 {
 public:
-    PlatformManager(const std::string &name, const rpr::EntityTypeStruct &entityType,
+    PhysicalEntityManager(const std::string &name, const rpr::EntityTypeStruct &entityType,
         const rpr::EntityIdentifierStruct &entityIdentifier, const rpr::EntityTypeStruct &alternateEntityType);
 
     void updateSpatial(const SpatialData& data);
 
 private:
-    sen::util::SettableDeadReckoner<rpr::PlatformBase<>> dr_;
+    sen::util::SettableDeadReckoner<rpr::PhysicalEntityBase<>> dr_;
 };
 
 
