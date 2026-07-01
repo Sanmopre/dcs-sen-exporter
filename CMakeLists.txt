@@ -17,7 +17,9 @@ add_executable(${PROJECT_NAME}
 src/main.cpp
         src/platform_manager.cpp
         src/platform_manager.h
-        src/data_definitions.h)
+        src/data_definitions.h
+        src/component.cpp
+        src/component.h)
 
 sen_generate_cpp(
         TARGET
