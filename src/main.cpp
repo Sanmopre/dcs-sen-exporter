@@ -1,6 +1,7 @@
 // spdlog
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/sinks/base_sink.h"
 
 // component
 #include "component.h"
@@ -23,6 +24,56 @@
 #include "sen/kernel/test_kernel.h"
 #include "sen/kernel/bootloader.h"
 
+// fxtui
+#include <ftxui/ftxui.hpp>
+
+
+struct UiState
+{
+    std::mutex mutex;
+    std::deque<std::string> logs;
+    f64 progress = 0.f;
+    std::string status;
+
+    void AddLog(std::string s)
+    {
+        std::lock_guard lock(mutex);
+
+        logs.push_back(std::move(s));
+
+        constexpr size_t MaxLogs = 1000;
+        while (logs.size() > MaxLogs)
+        {
+            logs.pop_front();
+        }
+    }
+};
+
+class FtxuiSink : public spdlog::sinks::base_sink<std::mutex>
+{
+public:
+    FtxuiSink(UiState& state,
+              ftxui::ScreenInteractive& screen)
+        : state_(state),
+          screen_(screen)
+    {}
+
+protected:
+    void sink_it_(const spdlog::details::log_msg& msg) override
+    {
+        spdlog::memory_buf_t formatted;
+        formatter_->format(msg, formatted);
+        state_.AddLog(fmt::to_string(formatted));
+        screen_.PostEvent(ftxui::Event::Custom);
+    }
+
+    void flush_() override {}
+
+private:
+    UiState& state_;
+    ftxui::ScreenInteractive& screen_;
+};
+
 
 int main(int argc, char** argv)
 {
@@ -39,12 +90,44 @@ int main(int argc, char** argv)
 
     CLI11_PARSE(app, argc, argv);
 
-    const auto logger =
-        spdlog::create<spdlog::sinks::stdout_color_sink_mt>(
-            "dcs-sen-exporter");
+    UiState uiState;
+    auto screen = ftxui::ScreenInteractive::Fullscreen();
+    auto sink = std::make_shared<FtxuiSink>(uiState, screen);
 
+    auto logger =
+        std::make_shared<spdlog::logger>(
+            "dcs",
+            sink);
+
+    spdlog::set_default_logger(logger);
+
+
+    auto renderer = ftxui::Renderer([&] {
+
+    std::vector<ftxui::Element> log_elements;
+
+    {
+        std::lock_guard lock(uiState.mutex);
+
+        for (auto const& line : uiState.logs)
+            log_elements.push_back(ftxui::text(line));
+    }
+
+    return ftxui::vbox({
+        ftxui::text("DCS Exporter") | ftxui::bold,
+        ftxui::separator(),
+        ftxui::gauge(uiState.progress),
+        ftxui::separator(),
+        vbox(std::move(log_elements))
+            | ftxui::frame
+            | ftxui::vscroll_indicator
+            | ftxui::border
+            | ftxui::flex,
+        });
+    });
+
+    std::thread worker([&] {
     logger->info("Opening {}", inputFile.string());
-
     std::ifstream file(inputFile);
 
     if (!file)
@@ -163,9 +246,19 @@ int main(int argc, char** argv)
         {
             recordingFinished = true;
         }
+
+        uiState.progress =
+    currentTime / finalTime;
+
+    screen.PostEvent(ftxui::Event::Custom);
     }
 
     logger->info("Finished conversion");
+        return 0;
+    });
+
+    screen.Loop(renderer);
+    worker.join();
 
     return 0;
 }

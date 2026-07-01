@@ -1,6 +1,7 @@
 {
   "mappings": {
-    "FA-18C_hornet": {
+    "FA-18C_hornet":
+    {
       "kind": 1,
       "domain": 2,
       "country": 225,
@@ -9,7 +10,8 @@
       "specific": 1,
       "extra": 4
     },
-    "MiG-29A": {
+    "MiG-29A":
+    {
       "kind": 1,
       "domain": 2,
       "country": 222,

@@ -12,6 +12,7 @@ find_package(sen REQUIRED)
 # Add submodules
 add_subdirectory(submodules/spdlog)
 add_subdirectory(submodules/cli11)
+add_subdirectory(submodules/ftxui)
 
 add_executable(${PROJECT_NAME}
 src/main.cpp
@@ -38,6 +39,7 @@ target_link_libraries(${PROJECT_NAME}
         sen::util
         spdlog::spdlog
         CLI11::CLI11
+        ftxui::ftxui
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC submodules/json/include)
