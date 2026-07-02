@@ -1,7 +1,7 @@
 #include "component.h"
 
-DcsComponent::DcsComponent(const sen::Duration &tickDuration, spdlog::logger* logger)
-    : logger_(logger), tickDuration_(tickDuration)
+DcsComponent::DcsComponent(const sen::Duration &tickDuration, const std::string& publishingBus, const Mappings& mappings, spdlog::logger* logger)
+    : logger_(logger), tickDuration_(tickDuration), publishingBus_(publishingBus), mappings_(mappings)
 {
 }
 
@@ -12,7 +12,7 @@ sen::kernel::FuncResult DcsComponent::load(sen::kernel::LoadApi &&load_api)
 
 sen::kernel::PassResult DcsComponent::init(sen::kernel::InitApi &&api)
 {
-    source_ = api.getSource("dcs.mission");
+    source_ = api.getSource(publishingBus_);
     return Component::init(std::move(api));
 }
 
@@ -45,22 +45,24 @@ void DcsComponent::newFrame(const FrameData &frame)
         {
             // Create entity
             const auto name = std::string("dcs_").append(sanitizeName(platform.name)).append("_").append(std::to_string(platform.id));
+            const auto entityType = getEntityType(platform.name);
+
             switch (platform.type)
             {
                 case PlatformType::AIRCRAFT:
-                    managers_.try_emplace(platform.id,std::make_shared<rpr::AircraftBase<rpr::PlatformBase<PhysicalEntityManager>>>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
+                    managers_.try_emplace(platform.id,std::make_shared<rpr::AircraftBase<rpr::PlatformBase<PhysicalEntityManager>>>(name, entityType, rpr::EntityIdentifierStruct{}, entityType));
                     break;
                 case PlatformType::GROUND_VEHICLE:
-                   managers_.try_emplace(platform.id,std::make_shared<rpr::GroundVehicleBase<rpr::PlatformBase<PhysicalEntityManager>>>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
+                   managers_.try_emplace(platform.id,std::make_shared<rpr::GroundVehicleBase<rpr::PlatformBase<PhysicalEntityManager>>>(name, entityType, rpr::EntityIdentifierStruct{}, entityType));
                     break;
                 case PlatformType::SURFACE_VESSEL:
-                    managers_.try_emplace(platform.id,std::make_shared<rpr::SurfaceVesselBase<rpr::PlatformBase<PhysicalEntityManager>>>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
+                    managers_.try_emplace(platform.id,std::make_shared<rpr::SurfaceVesselBase<rpr::PlatformBase<PhysicalEntityManager>>>(name, entityType, rpr::EntityIdentifierStruct{}, entityType));
                     break;
                 case PlatformType::MUNITION:
-                    managers_.try_emplace(platform.id,std::make_shared<rpr::MunitionBase<PhysicalEntityManager>>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
+                    managers_.try_emplace(platform.id,std::make_shared<rpr::MunitionBase<PhysicalEntityManager>>(name, entityType, rpr::EntityIdentifierStruct{}, entityType));
                     break;
                 default:
-                    managers_.try_emplace(platform.id,std::make_shared<PhysicalEntityManager>(name, rpr::EntityTypeStruct{}, rpr::EntityIdentifierStruct{}, rpr::EntityTypeStruct{}));
+                    managers_.try_emplace(platform.id,std::make_shared<PhysicalEntityManager>(name, entityType, rpr::EntityIdentifierStruct{}, entityType));
             }
 
             managers_.at(platform.id)->updateSpatial(platform.spatial);
@@ -103,4 +105,14 @@ std::string DcsComponent::sanitizeName(const std::string& name)
     }
 
     return result;
+}
+
+rpr::EntityTypeStruct DcsComponent::getEntityType(const std::string &name) const noexcept
+{
+    if (const auto it = mappings_.find(name); it != mappings_.end()) {
+        return it->second;
+    }
+
+    logger_->warn("Failed to find mapping entry for {}", name);
+    return rpr::EntityTypeStruct{};
 }

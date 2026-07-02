@@ -1,6 +1,8 @@
 {
-  "recording": "",
-  "outputFolder": "",
+  "recording": "C:\\Users\\molin\\Saved Games\\DCS\\Logs\\unknown_mission_2026-07-01_12-40-10.ndjson",
+  "outputFolder": ".",
+  "outputRecording": "DCS_Recording",
+  "bus": "dcs.mission",
   "mappings":
   {
     "FA-18C_hornet":
@@ -22,6 +24,176 @@
       "subcategory": 9,
       "specific": 4,
       "extra": 2
+    },
+    "Kub 2P25 ln":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 9,
+      "specific": 4,
+      "extra": 2
+    },
+    "1L13 EWR":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 4,
+      "specific": 3,
+      "extra": 0
+    },
+    "Ural-375 PBU":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 1,
+      "specific": 3,
+      "extra": 0
+    },
+    "F-14A-135-GR":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 225,
+      "category": 1,
+      "subcategory": 20,
+      "specific": 1,
+      "extra": 0
+    },
+    "ZSU-23-4 Shilka":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 2,
+      "specific": 6,
+      "extra": 0
+    },
+    "PERRY":
+    {
+      "kind": 1,
+      "domain": 3,
+      "country": 225,
+      "category": 1,
+      "subcategory": 3,
+      "specific": 1,
+      "extra": 0
+    },
+    "Osa 9A33 ln":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 9,
+      "specific": 7,
+      "extra": 0
+    },
+    "TICONDEROG":
+    {
+      "kind": 1,
+      "domain": 3,
+      "country": 225,
+      "category": 1,
+      "subcategory": 2,
+      "specific": 1,
+      "extra": 0
+    },
+    "S-3B Tanker":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 225,
+      "category": 1,
+      "subcategory": 8,
+      "specific": 2,
+      "extra": 0
+    },
+    "Stennis":
+    {
+      "kind": 1,
+      "domain": 3,
+      "country": 225,
+      "category": 2,
+      "subcategory": 2,
+      "specific": 4,
+      "extra": 0
+    },
+    "A-50":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 6,
+      "specific": 1,
+      "extra": 0
+    },
+    "Strela-1 9P31":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 9,
+      "specific": 2,
+      "extra": 0
+    },
+    "E-2C":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 225,
+      "category": 1,
+      "subcategory": 6,
+      "specific": 2,
+      "extra": 0
+    },
+    "SH-60B":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 225,
+      "category": 2,
+      "subcategory": 2,
+      "specific": 1,
+      "extra": 0
+    },
+    "BGM_109B":
+    {
+      "kind": 2,
+      "domain": 2,
+      "country": 225,
+      "category": 1,
+      "subcategory": 4,
+      "specific": 2,
+      "extra": 0
+    },
+    "AGM_88":
+    {
+      "kind": 2,
+      "domain": 2,
+      "country": 225,
+      "category": 1,
+      "subcategory": 4,
+      "specific": 4,
+      "extra": 0
+    },
+    "Kub 1S91 str":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 4,
+      "specific": 4,
+      "extra": 0
     }
   }
 }

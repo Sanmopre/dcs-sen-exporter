@@ -16,7 +16,7 @@
 class DcsComponent : public sen::kernel::Component
 {
 public:
-    DcsComponent(const sen::Duration& tickDuration, spdlog::logger* logger);
+    DcsComponent(const sen::Duration& tickDuration, const std::string& publishingBus, const Mappings& mappings, spdlog::logger* logger);
     ~DcsComponent() override = default;
 
     sen::kernel::FuncResult load(sen::kernel::LoadApi&&) override;
@@ -29,10 +29,13 @@ public:
 
 private:
     [[nodiscard]] static std::string sanitizeName(const std::string& name);
+    [[nodiscard]] rpr::EntityTypeStruct getEntityType(const std::string& name) const noexcept;
 
 private:
     spdlog::logger* logger_;
     const sen::Duration& tickDuration_;
+    const std::string publishingBus_;
+    const Mappings& mappings_;
 
 private:
     std::unordered_map<u64, std::shared_ptr<PhysicalEntityManager>> managers_;

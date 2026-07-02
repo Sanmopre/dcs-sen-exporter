@@ -52,7 +52,9 @@ struct UiState
 
         constexpr size_t MaxLogs = 1000;
         while (logs.size() > MaxLogs)
+        {
             logs.pop_front();
+        }
     }
 };
 
@@ -112,53 +114,43 @@ int main(int argc, char** argv)
     CLI::App app{"DCS sen exporter"};
 
     std::filesystem::path inputFile;
-    std::filesystem::path configFile;
 
     app.add_option(
         "input,-i,--input",
         inputFile,
-        "Path to the DCS .ndjson file")
+        "Path to input.json file")
         ->required()
         ->check(CLI::ExistingFile);
 
-    app.add_option(        "-c,--config",
-        configFile,
-        "Path to configuration json file")
-        ->check(CLI::ExistingFile);
-
     CLI11_PARSE(app, argc, argv);
-
 
     UiState uiState;
     auto screen = ftxui::ScreenInteractive::Fullscreen();
 
     // Logger initialization
     auto sink = std::make_shared<FtxuiSink>(uiState, screen);
-    auto logger =
+    const auto logger =
         std::make_shared<spdlog::logger>(
             "dcs",
             sink);
 
     spdlog::set_default_logger(logger);
 
-
-    // FTXUI Renderer application
     auto LevelColor = [](spdlog::level::level_enum level)
     {
-        using namespace ftxui;
-
         switch (level)
         {
-            case spdlog::level::trace:    return Color::GrayDark;
-            case spdlog::level::debug:    return Color::Blue;
-            case spdlog::level::info:     return Color::Green;
-            case spdlog::level::warn:     return Color::Yellow;
-            case spdlog::level::err:      return Color::Red;
-            case spdlog::level::critical: return Color::Red;
-            default:                      return Color::White;
+            case spdlog::level::trace:    return ftxui::Color::GrayDark;
+            case spdlog::level::debug:    return ftxui::Color::Blue;
+            case spdlog::level::info:     return ftxui::Color::Green;
+            case spdlog::level::warn:     return ftxui::Color::Yellow;
+            case spdlog::level::err:      return ftxui::Color::Red;
+            case spdlog::level::critical: return ftxui::Color::Red;
+            default:                      return ftxui::Color::White;
         }
     };
 
+    // FTXUI Renderer application
     auto renderer = ftxui::Renderer([&]
     {
         std::vector<ftxui::Element> log_elements;
@@ -171,32 +163,32 @@ int main(int argc, char** argv)
             readingProgress = uiState.readingProgress;
             convertingProgress = uiState.convertingProgress;
 
-            for (auto const& log : uiState.logs)
+            for (const auto&[timestamp, loggerName, level, message] : uiState.logs)
             {
                 auto levelText =
-                    std::string(spdlog::level::to_string_view(log.level).data(),
-                                spdlog::level::to_string_view(log.level).size());
+                    std::string(spdlog::level::to_string_view(level).data(),
+                                spdlog::level::to_string_view(level).size());
 
                 log_elements.push_back(
                     ftxui::hbox({
-                        ftxui::text("[" + log.timestamp + "] "),
-                        ftxui::text("[" + log.loggerName + "] "),
+                        ftxui::text("[" + timestamp + "] "),
+                        ftxui::text("[" + loggerName + "] "),
                         ftxui::text("[" + levelText + "] ")
-                            | ftxui::color(LevelColor(log.level)),
-                        ftxui::text(log.message),
+                            | ftxui::color(LevelColor(level)),
+                        ftxui::text(message),
                     })
                 );
             }
         }
 
         return ftxui::vbox({
-            ftxui::text("DCS Sen Exporter") | ftxui::bold,
+            ftxui::text("Digital Combat Simulator <=> Sen") | ftxui::bold | ftxui::center,
             ftxui::separator(),
             ftxui::text("Reading"),
-            ftxui::gauge(readingProgress),
+            ftxui::gauge(readingProgress) | ftxui::color(ftxui::Color::Blue),
             ftxui::separator(),
             ftxui::text("Converting"),
-            ftxui::gauge(convertingProgress),
+            ftxui::gauge(convertingProgress) | ftxui::color(ftxui::Color::Green),
             ftxui::separator(),
             ftxui::vbox(std::move(log_elements))
                 | ftxui::frame
@@ -210,23 +202,37 @@ int main(int argc, char** argv)
     {
     // Start timer
     auto start = std::chrono::steady_clock::now();
-
-    // Opening recording file
-    logger->info("Opening recording {}", inputFile.string());
-    std::ifstream recordingFileStream(inputFile);
-    if (!recordingFileStream)
+            // Opening input file
+    logger->info("Opening input file {}", inputFile.string());
+    std::ifstream inputFileStream(inputFile);
+    if (!inputFileStream)
     {
-        logger->error("Failed to open recording {}", inputFile.string());
+        logger->error("Failed to open input {}", inputFile.string());
         return 1;
     }
 
-    // Opening config file
-    logger->info("Opening {}", configFile.string());
-    std::ifstream configFileStream(configFile);
-    if (!configFileStream)
+    const auto inputJsonFile = nlohmann::json::parse(inputFileStream);
+
+    std::filesystem::path recordingFilePath;
+
+    // Check if the recording key exists
+    if (const auto it = inputJsonFile.find("recording"); it != inputJsonFile.end())
     {
-        logger->warn("Failed to open config {}", configFile.string());
-        logger->warn("Using default config");
+        recordingFilePath = inputJsonFile.at("recording").get<std::string>();
+    }
+    else
+    {
+        logger->error("Failed to find recording entry in {}", inputFile.string());
+        return 1;
+    }
+
+    // Opening recording file
+    logger->info("Opening recording file {}", recordingFilePath.string());
+    std::ifstream recordingFileStream(recordingFilePath);
+    if (!recordingFileStream)
+    {
+        logger->error("Failed to open recording {}", recordingFilePath.string());
+        return 1;
     }
 
     // Get the number of lines in the file
@@ -245,63 +251,39 @@ int main(int argc, char** argv)
 
     logger->info("Reading recording with {} entries", lineCount);
 
-    Recording recording;
-    //recording.reserve(lineCount);
-
-    u64 recordingCount = 0;
-    while (std::getline(recordingFileStream, line))
-    {
-        if (line.empty())
-            continue;
-
-        FrameData data;
-
-        auto frame = nlohmann::json::parse(line);
-
-        data.frameNumber = frame["frame"];
-        data.time = frame["t"];
-        data.platforms.reserve(frame["units"].size());
-
-        for (const auto& aircraft : frame["units"])
-        {
-            PlatformData platformData;
-            platformData.type = aircraft["level1"];
-            platformData.name = aircraft["name"];
-            platformData.id = aircraft["id"];
-            platformData.spatial.latitude = aircraft["lat"];
-            platformData.spatial.longitude = aircraft["lon"];
-            platformData.spatial.altitude = aircraft["alt"];
-            data.platforms.push_back(std::move(platformData));
-        }
-
-        recording.push_back(std::move(data));
-        recordingCount++;
-        {
-            std::lock_guard lock(uiState.mutex);
-            uiState.readingProgress =
-                static_cast<f64>(recordingCount) / static_cast<f64>(lineCount);
-        }
-        screen.PostEvent(ftxui::Event::Custom);
-    }
-
-
     std::shared_ptr<DcsComponent> component_;
     std::unique_ptr<sen::kernel::TestKernel> kernel_;
 
-    component_ = std::make_shared<DcsComponent>(std::chrono::milliseconds(1), logger.get());
+    // Check if mappings exist
+    if (const auto it = inputJsonFile.find("mappings"); it == inputJsonFile.end())
+    {
+        logger->warn("Failed to find mappings entry in {}", inputFile.string());
+    }
 
-    const auto bootLoader = sen::kernel::Bootloader::fromYamlString(R"(load:
+    // Get mappings
+    Mappings mappings;
+    fillMappings(inputJsonFile["mappings"], mappings);
+
+    // Create component
+    component_ = std::make_shared<DcsComponent>(std::chrono::milliseconds(1),inputJsonFile.value("bus", "dcs.mission"),mappings, logger.get());
+
+    const std::string yaml = fmt::format(R"(load:
   - name: recorder
-    group: 2
+    group: 1
     recordings:
-      - name: DCS_recording
-        folder: .
+      - name: '{}'
+        folder: '{}'
         indexKeyframes: true
         indexObjects: true
         keyframePeriod: 2 s
         autoStart: true
         selections:
-          - SELECT * FROM dcs.mission  # record all objects in local.kernel)", false);
+          - SELECT * FROM {})",
+        inputJsonFile.value("outputRecording", "DCS_Recording"),
+        inputJsonFile.value("outputFolder", "."),
+        inputJsonFile.value("bus", "dcs.mission"));
+
+    const auto bootLoader = sen::kernel::Bootloader::fromYamlString(yaml, false);
 
     sen::kernel::ComponentContext component;
     component.instance = component_.get();
@@ -340,10 +322,57 @@ int main(int argc, char** argv)
     bootLoader->getConfig().addToLoad(componentConfig);
     kernel_ = std::make_unique<sen::kernel::TestKernel>(bootLoader->getConfig());
 
+        Recording recording;
+        recording.reserve(lineCount);
+
+        u64 recordingCount = 0;
+        while (std::getline(recordingFileStream, line))
+        {
+            if (line.empty())
+                continue;
+
+            FrameData data;
+
+            auto frame = nlohmann::json::parse(line);
+
+            data.frameNumber = frame["frame"];
+            data.time = frame["t"];
+            data.platforms.reserve(frame["units"].size());
+
+            for (const auto& unit : frame["units"])
+            {
+                PlatformData platformData;
+                platformData.type = unit["level1"];
+                platformData.name = unit["name"];
+                platformData.id = unit["id"];
+                platformData.spatial.latitude = unit["lat"];
+                platformData.spatial.longitude = unit["lon"];
+                platformData.spatial.altitude = unit["alt"];
+                data.platforms.push_back(std::move(platformData));
+            }
+
+            recording.push_back(std::move(data));
+            recordingCount++;
+            {
+                std::lock_guard lock(uiState.mutex);
+                uiState.readingProgress =
+                    static_cast<f64>(recordingCount) / static_cast<f64>(lineCount);
+            }
+            screen.PostEvent(ftxui::Event::Custom);
+        }
+
+    logger->info("Finished reading the content of the recording");
+    logger->info("-------------------------------------------------------------");
+    logger->info("Number of frames            : {} frames", recording.size());
+    logger->info("Recording duration of frames: {} seconds", recording.back().time);
+    logger->info("-------------------------------------------------------------");
+
     f64 currentTime = 0;
     u64 recordingFrame = 0;
     const f64 finalTime = recording.back().time;
     bool recordingFinished = false;
+
+    logger->info("Converting recording");
 
     // Kernel loop
     while (!recordingFinished)
