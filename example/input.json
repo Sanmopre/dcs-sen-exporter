@@ -1,5 +1,8 @@
 {
-  "mappings": {
+  "recording": "",
+  "outputFolder": "",
+  "mappings":
+  {
     "FA-18C_hornet":
     {
       "kind": 1,

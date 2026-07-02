@@ -28,24 +28,31 @@
 #include <ftxui/ftxui.hpp>
 
 
+struct LogEntry
+{
+    std::string timestamp;
+    std::string loggerName;
+    spdlog::level::level_enum level;
+    std::string message;
+};
+
 struct UiState
 {
     std::mutex mutex;
-    std::deque<std::string> logs;
-    f64 progress = 0.f;
+    std::deque<LogEntry> logs;
+    f64 convertingProgress = 0.0;
+    f64 readingProgress = 0.0;
     std::string status;
 
-    void AddLog(std::string s)
+    void AddLog(LogEntry entry)
     {
         std::lock_guard lock(mutex);
 
-        logs.push_back(std::move(s));
+        logs.push_back(std::move(entry));
 
         constexpr size_t MaxLogs = 1000;
         while (logs.size() > MaxLogs)
-        {
             logs.pop_front();
-        }
     }
 };
 
@@ -61,9 +68,34 @@ public:
 protected:
     void sink_it_(const spdlog::details::log_msg& msg) override
     {
-        spdlog::memory_buf_t formatted;
-        formatter_->format(msg, formatted);
-        state_.AddLog(fmt::to_string(formatted));
+        auto time = std::chrono::system_clock::to_time_t(
+            std::chrono::system_clock::now());
+
+        std::tm tm{};
+#ifdef _WIN32
+        localtime_s(&tm, &time);
+#else
+        localtime_r(&time, &tm);
+#endif
+
+        std::ostringstream ts;
+        ts << std::put_time(&tm, "%H:%M:%S");
+
+        std::string message(msg.payload.begin(), msg.payload.end());
+
+        while (!message.empty() &&
+               (message.back() == '\n' || message.back() == '\r'))
+        {
+            message.pop_back();
+        }
+
+        state_.AddLog(LogEntry{
+            ts.str(),
+            std::string(msg.logger_name.begin(), msg.logger_name.end()),
+            msg.level,
+            std::move(message)
+        });
+
         screen_.PostEvent(ftxui::Event::Custom);
     }
 
@@ -80,6 +112,7 @@ int main(int argc, char** argv)
     CLI::App app{"DCS sen exporter"};
 
     std::filesystem::path inputFile;
+    std::filesystem::path configFile;
 
     app.add_option(
         "input,-i,--input",
@@ -88,12 +121,19 @@ int main(int argc, char** argv)
         ->required()
         ->check(CLI::ExistingFile);
 
+    app.add_option(        "-c,--config",
+        configFile,
+        "Path to configuration json file")
+        ->check(CLI::ExistingFile);
+
     CLI11_PARSE(app, argc, argv);
+
 
     UiState uiState;
     auto screen = ftxui::ScreenInteractive::Fullscreen();
-    auto sink = std::make_shared<FtxuiSink>(uiState, screen);
 
+    // Logger initialization
+    auto sink = std::make_shared<FtxuiSink>(uiState, screen);
     auto logger =
         std::make_shared<spdlog::logger>(
             "dcs",
@@ -102,45 +142,114 @@ int main(int argc, char** argv)
     spdlog::set_default_logger(logger);
 
 
-    auto renderer = ftxui::Renderer([&] {
-
-    std::vector<ftxui::Element> log_elements;
-
+    // FTXUI Renderer application
+    auto LevelColor = [](spdlog::level::level_enum level)
     {
-        std::lock_guard lock(uiState.mutex);
+        using namespace ftxui;
 
-        for (auto const& line : uiState.logs)
-            log_elements.push_back(ftxui::text(line));
-    }
+        switch (level)
+        {
+            case spdlog::level::trace:    return Color::GrayDark;
+            case spdlog::level::debug:    return Color::Blue;
+            case spdlog::level::info:     return Color::Green;
+            case spdlog::level::warn:     return Color::Yellow;
+            case spdlog::level::err:      return Color::Red;
+            case spdlog::level::critical: return Color::Red;
+            default:                      return Color::White;
+        }
+    };
 
-    return ftxui::vbox({
-        ftxui::text("DCS Exporter") | ftxui::bold,
-        ftxui::separator(),
-        ftxui::gauge(uiState.progress),
-        ftxui::separator(),
-        vbox(std::move(log_elements))
-            | ftxui::frame
-            | ftxui::vscroll_indicator
-            | ftxui::border
-            | ftxui::flex,
+    auto renderer = ftxui::Renderer([&]
+    {
+        std::vector<ftxui::Element> log_elements;
+        f64 readingProgress = 0.0;
+        f64 convertingProgress = 0.0;
+
+        {
+            std::lock_guard lock(uiState.mutex);
+
+            readingProgress = uiState.readingProgress;
+            convertingProgress = uiState.convertingProgress;
+
+            for (auto const& log : uiState.logs)
+            {
+                auto levelText =
+                    std::string(spdlog::level::to_string_view(log.level).data(),
+                                spdlog::level::to_string_view(log.level).size());
+
+                log_elements.push_back(
+                    ftxui::hbox({
+                        ftxui::text("[" + log.timestamp + "] "),
+                        ftxui::text("[" + log.loggerName + "] "),
+                        ftxui::text("[" + levelText + "] ")
+                            | ftxui::color(LevelColor(log.level)),
+                        ftxui::text(log.message),
+                    })
+                );
+            }
+        }
+
+        return ftxui::vbox({
+            ftxui::text("DCS Sen Exporter") | ftxui::bold,
+            ftxui::separator(),
+            ftxui::text("Reading"),
+            ftxui::gauge(readingProgress),
+            ftxui::separator(),
+            ftxui::text("Converting"),
+            ftxui::gauge(convertingProgress),
+            ftxui::separator(),
+            ftxui::vbox(std::move(log_elements))
+                | ftxui::frame
+                | ftxui::vscroll_indicator
+                | ftxui::border
+                | ftxui::flex,
         });
     });
 
-    std::thread worker([&] {
-    logger->info("Opening {}", inputFile.string());
-    std::ifstream file(inputFile);
-
-    if (!file)
+    std::thread worker([&]
     {
-        logger->error("Failed to open {}", inputFile.string());
+    // Start timer
+    auto start = std::chrono::steady_clock::now();
+
+    // Opening recording file
+    logger->info("Opening recording {}", inputFile.string());
+    std::ifstream recordingFileStream(inputFile);
+    if (!recordingFileStream)
+    {
+        logger->error("Failed to open recording {}", inputFile.string());
         return 1;
     }
 
-    std::string line;
-    Recording recording;
-    // Ideally try to reserve the memory given the number of lines in the file
+    // Opening config file
+    logger->info("Opening {}", configFile.string());
+    std::ifstream configFileStream(configFile);
+    if (!configFileStream)
+    {
+        logger->warn("Failed to open config {}", configFile.string());
+        logger->warn("Using default config");
+    }
 
-    while (std::getline(file, line))
+    // Get the number of lines in the file
+    std::string line;
+
+    u64 lineCount = 0;
+    while (std::getline(recordingFileStream, line))
+    {
+        if (!line.empty())
+            ++lineCount;
+    }
+
+    // Reset file
+    recordingFileStream.clear();
+    recordingFileStream.seekg(0);
+
+    logger->info("Reading recording with {} entries", lineCount);
+
+    Recording recording;
+    //recording.reserve(lineCount);
+
+    u64 recordingCount = 0;
+    while (std::getline(recordingFileStream, line))
     {
         if (line.empty())
             continue;
@@ -166,6 +275,13 @@ int main(int argc, char** argv)
         }
 
         recording.push_back(std::move(data));
+        recordingCount++;
+        {
+            std::lock_guard lock(uiState.mutex);
+            uiState.readingProgress =
+                static_cast<f64>(recordingCount) / static_cast<f64>(lineCount);
+        }
+        screen.PostEvent(ftxui::Event::Custom);
     }
 
 
@@ -247,13 +363,20 @@ int main(int argc, char** argv)
             recordingFinished = true;
         }
 
-        uiState.progress =
-    currentTime / finalTime;
-
-    screen.PostEvent(ftxui::Event::Custom);
+        {
+            std::lock_guard lock(uiState.mutex);
+            uiState.convertingProgress = currentTime / finalTime;
+        }
+        screen.PostEvent(ftxui::Event::Custom);
     }
 
-    logger->info("Finished conversion");
+
+        // Calculate elapsed time
+        auto elapsed =
+            std::chrono::duration<double>(
+                std::chrono::steady_clock::now() - start);
+
+        logger->info("Finished conversion in {:.3f} s", elapsed.count());
         return 0;
     });
 
