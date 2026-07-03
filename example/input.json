@@ -1,10 +1,95 @@
 {
-  "recording": "C:\\Users\\molin\\Saved Games\\DCS\\Logs\\unknown_mission_2026-07-01_12-40-10.ndjson",
+  "recording": "C:\\Users\\molin\\Saved Games\\DCS\\Logs\\unknown_mission_2026-07-03_13-14-54.ndjson",
   "outputFolder": ".",
-  "outputRecording": "DCS_Recording",
+  "outputRecording": "DCS_Planes",
   "bus": "dcs.mission",
   "mappings":
+  {"MiG-25PD":
   {
+    "kind": 1,
+    "domain": 2,
+    "country": 222,
+    "category": 1,
+    "subcategory": 2,
+    "specific": 25,
+    "extra": 0
+  },
+
+    "IL-76MD":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 4,
+      "subcategory": 4,
+      "specific": 76,
+      "extra": 0
+    },
+
+    "Su-24M":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 2,
+      "subcategory": 2,
+      "specific": 24,
+      "extra": 0
+    },
+
+    "Dog Ear radar":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 4,
+      "specific": 5,
+      "extra": 0
+    },
+
+    "SA-11 Buk SR 9S18M1":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 4,
+      "specific": 5,
+      "extra": 0
+    },
+
+    "SA-11 Buk LN 9A310M1":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 9,
+      "specific": 8,
+      "extra": 0
+    },
+
+    "SA-11 Buk CC 9S470M1":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 1,
+      "specific": 11,
+      "extra": 0
+    },
+    "MiG-21Bis":
+  {
+    "kind": 1,
+    "domain": 2,
+    "country": 222,
+    "category": 1,
+    "subcategory": 2,
+    "specific": 21,
+    "extra": 0
+  },
     "FA-18C_hornet":
     {
       "kind": 1,
@@ -193,6 +278,135 @@
       "category": 1,
       "subcategory": 4,
       "specific": 4,
+      "extra": 0
+    },
+    "ATZ-10":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 4,
+      "subcategory": 1,
+      "specific": 10,
+      "extra": 0
+    },
+
+    "KrAZ6322":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 4,
+      "subcategory": 1,
+      "specific": 32,
+      "extra": 0
+    },
+
+    "M978 HEMTT Tanker":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 225,
+      "category": 4,
+      "subcategory": 1,
+      "specific": 78,
+      "extra": 0
+    },
+
+    "M 818":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 225,
+      "category": 4,
+      "subcategory": 1,
+      "specific": 18,
+      "extra": 0
+    },
+
+    "Hummer":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 225,
+      "category": 3,
+      "subcategory": 1,
+      "specific": 1,
+      "extra": 0
+    },
+
+    "Soldier M4":
+    {
+      "kind": 1,
+      "domain": 2,
+      "country": 225,
+      "category": 9,
+      "subcategory": 1,
+      "specific": 4,
+      "extra": 0
+    },
+
+    "P_27P":
+    {
+      "kind": 2,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 1,
+      "specific": 27,
+      "extra": 0
+    },
+    "":
+    {
+      "kind": 2,
+      "domain": 2,
+      "country": 0,
+      "category": 8,
+      "subcategory": 1,
+      "specific": 0,
+      "extra": 0
+    },
+    "AIM_9":
+    {
+      "kind": 2,
+      "domain": 2,
+      "country": 225,
+      "category": 1,
+      "subcategory": 1,
+      "specific": 9,
+      "extra": 0
+    },
+
+    "AIM_7":
+    {
+      "kind": 2,
+      "domain": 2,
+      "country": 225,
+      "category": 1,
+      "subcategory": 1,
+      "specific": 7,
+      "extra": 0
+    },
+
+    "P_73":
+    {
+      "kind": 2,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 1,
+      "specific": 73,
+      "extra": 0
+    },
+
+    "PILOT_F18":
+    {
+      "kind": 3,
+      "domain": 2,
+      "country": 225,
+      "category": 1,
+      "subcategory": 1,
+      "specific": 0,
       "extra": 0
     }
   }

@@ -204,7 +204,9 @@ int main(int argc, char** argv)
 
     std::thread worker([&]
     {
-    // Start timer
+        try
+        {
+                // Start timer
     auto start = std::chrono::steady_clock::now();
 
     // Opening input file
@@ -257,7 +259,7 @@ int main(int argc, char** argv)
     logger->info("Reading recording with {} entries", lineCount);
 
     Recording recording;
-    //recording.reserve(lineCount);
+    recording.reserve(lineCount);
 
     u64 recordingCount = 0;
     while (std::getline(recordingFileStream, line))
@@ -295,6 +297,12 @@ int main(int argc, char** argv)
         screen.PostEvent(ftxui::Event::Custom);
     }
 
+    logger->info("Finished reading the content of the recording");
+    logger->info("-------------------------------------------------------------");
+    logger->info("Number of frames            : {} frames", recording.size());
+    logger->info("Recording duration of frames: {} seconds", recording.back().time);
+    logger->info("-------------------------------------------------------------");
+
 
     std::shared_ptr<DcsComponent> component_;
     std::unique_ptr<sen::kernel::TestKernel> kernel_;
@@ -308,7 +316,6 @@ int main(int argc, char** argv)
     // Get mappings
     Mappings mappings;
     fillMappings(inputJsonFile["mappings"], mappings);
-    logger->info("Mappings size {}", mappings.size());
 
     component_ = std::make_shared<DcsComponent>(std::chrono::milliseconds(1),"dcs.mission", mappings, logger.get());
 
@@ -372,6 +379,8 @@ int main(int argc, char** argv)
     const f64 finalTime = recording.back().time;
     bool recordingFinished = false;
 
+    logger->info("Converting to sen recording");
+
     // Kernel loop
     while (!recordingFinished)
     {
@@ -405,6 +414,17 @@ int main(int argc, char** argv)
 
         logger->info("Finished conversion in {:.3f} s", elapsed.count());
         return 0;
+        }
+        catch (const std::exception& e)
+        {
+            logger->critical("Unhandled exception: {}", e.what());
+            screen.ExitLoopClosure()();
+        }
+        catch (...)
+        {
+            logger->critical("Unhandled non-std exception");
+            screen.ExitLoopClosure()();
+        }
     });
 
     screen.Loop(renderer);
