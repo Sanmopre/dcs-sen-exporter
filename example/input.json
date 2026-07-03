@@ -1,5 +1,5 @@
 {
-  "recording": "C:\\Users\\molin\\Saved Games\\DCS\\Logs\\unknown_mission_2026-07-03_13-14-54.ndjson",
+  "recording": "../../example/recording.ndjson",
   "outputFolder": ".",
   "outputRecording": "DCS_Planes",
   "bus": "dcs.mission",
