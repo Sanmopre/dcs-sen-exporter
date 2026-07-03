@@ -1,7 +1,8 @@
 #include "component.h"
 
-DcsComponent::DcsComponent(const sen::Duration &tickDuration, const std::string& publishingBus, const Mappings& mappings, spdlog::logger* logger)
-    : logger_(logger), tickDuration_(tickDuration), publishingBus_(publishingBus), mappings_(mappings)
+DcsComponent::DcsComponent(sen::Duration tickDuration, std::string publishingBus, Mappings mappings,
+    spdlog::logger *logger) :
+logger_(logger), tickDuration_(tickDuration), publishingBus_(std::move(publishingBus)), mappings_(std::move(mappings))
 {
 }
 
@@ -45,7 +46,7 @@ void DcsComponent::newFrame(const FrameData &frame)
         {
             // Create entity
             const auto name = std::string("dcs_").append(sanitizeName(platform.name)).append("_").append(std::to_string(platform.id));
-            const auto entityType = getEntityType(platform.name);
+            auto entityType = getEntityType(platform.name);
 
             switch (platform.type)
             {

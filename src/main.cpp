@@ -118,7 +118,7 @@ int main(int argc, char** argv)
     app.add_option(
         "input,-i,--input",
         inputFile,
-        "Path to input.json file")
+        "Path to input.json file with the conversion information")
         ->required()
         ->check(CLI::ExistingFile);
 
@@ -136,8 +136,12 @@ int main(int argc, char** argv)
 
     spdlog::set_default_logger(logger);
 
+
+    // FTXUI Renderer application
     auto LevelColor = [](spdlog::level::level_enum level)
     {
+        using namespace ftxui;
+
         switch (level)
         {
             case spdlog::level::trace:    return ftxui::Color::GrayDark;
@@ -202,7 +206,8 @@ int main(int argc, char** argv)
     {
     // Start timer
     auto start = std::chrono::steady_clock::now();
-            // Opening input file
+
+    // Opening input file
     logger->info("Opening input file {}", inputFile.string());
     std::ifstream inputFileStream(inputFile);
     if (!inputFileStream)
@@ -210,30 +215,30 @@ int main(int argc, char** argv)
         logger->error("Failed to open input {}", inputFile.string());
         return 1;
     }
-
     const auto inputJsonFile = nlohmann::json::parse(inputFileStream);
 
     std::filesystem::path recordingFilePath;
 
-    // Check if the recording key exists
-    if (const auto it = inputJsonFile.find("recording"); it != inputJsonFile.end())
-    {
-        recordingFilePath = inputJsonFile.at("recording").get<std::string>();
-    }
-    else
-    {
-        logger->error("Failed to find recording entry in {}", inputFile.string());
-        return 1;
-    }
+     // Check if the recording key exists
+     if (const auto it = inputJsonFile.find("recording"); it != inputJsonFile.end())
+     {
+         recordingFilePath = inputJsonFile.at("recording").get<std::string>();
+     }
+     else
+     {
+         logger->error("Failed to find recording entry in {}", inputFile.string());
+         return 1;
+     }
 
     // Opening recording file
-    logger->info("Opening recording file {}", recordingFilePath.string());
+    logger->info("Opening recording {}", recordingFilePath.string());
     std::ifstream recordingFileStream(recordingFilePath);
     if (!recordingFileStream)
     {
         logger->error("Failed to open recording {}", recordingFilePath.string());
         return 1;
     }
+
 
     // Get the number of lines in the file
     std::string line;
@@ -251,6 +256,46 @@ int main(int argc, char** argv)
 
     logger->info("Reading recording with {} entries", lineCount);
 
+    Recording recording;
+    //recording.reserve(lineCount);
+
+    u64 recordingCount = 0;
+    while (std::getline(recordingFileStream, line))
+    {
+        if (line.empty())
+            continue;
+
+        FrameData data;
+
+        auto frame = nlohmann::json::parse(line);
+
+        data.frameNumber = frame["frame"];
+        data.time = frame["t"];
+        data.platforms.reserve(frame["units"].size());
+
+        for (const auto& aircraft : frame["units"])
+        {
+            PlatformData platformData;
+            platformData.type = aircraft["level1"];
+            platformData.name = aircraft["name"];
+            platformData.id = aircraft["id"];
+            platformData.spatial.latitude = aircraft["lat"];
+            platformData.spatial.longitude = aircraft["lon"];
+            platformData.spatial.altitude = aircraft["alt"];
+            data.platforms.push_back(std::move(platformData));
+        }
+
+        recording.push_back(std::move(data));
+        recordingCount++;
+        {
+            std::lock_guard lock(uiState.mutex);
+            uiState.readingProgress =
+                static_cast<f64>(recordingCount) / static_cast<f64>(lineCount);
+        }
+        screen.PostEvent(ftxui::Event::Custom);
+    }
+
+
     std::shared_ptr<DcsComponent> component_;
     std::unique_ptr<sen::kernel::TestKernel> kernel_;
 
@@ -263,11 +308,11 @@ int main(int argc, char** argv)
     // Get mappings
     Mappings mappings;
     fillMappings(inputJsonFile["mappings"], mappings);
+    logger->info("Mappings size {}", mappings.size());
 
-    // Create component
-    component_ = std::make_shared<DcsComponent>(std::chrono::milliseconds(1),inputJsonFile.value("bus", "dcs.mission"),mappings, logger.get());
+    component_ = std::make_shared<DcsComponent>(std::chrono::milliseconds(1),"dcs.mission", mappings, logger.get());
 
-    const std::string yaml = fmt::format(R"(load:
+        const std::string yaml = fmt::format(R"(load:
   - name: recorder
     group: 1
     recordings:
@@ -279,11 +324,11 @@ int main(int argc, char** argv)
         autoStart: true
         selections:
           - SELECT * FROM {})",
-        inputJsonFile.value("outputRecording", "DCS_Recording"),
-        inputJsonFile.value("outputFolder", "."),
-        inputJsonFile.value("bus", "dcs.mission"));
+            inputJsonFile.value("outputRecording", "DCS_Recording"),
+            inputJsonFile.value("outputFolder", "."),
+            inputJsonFile.value("bus", "dcs.mission"));
 
-    const auto bootLoader = sen::kernel::Bootloader::fromYamlString(yaml, false);
+        const auto bootLoader = sen::kernel::Bootloader::fromYamlString(yaml, false);
 
     sen::kernel::ComponentContext component;
     component.instance = component_.get();
@@ -322,57 +367,10 @@ int main(int argc, char** argv)
     bootLoader->getConfig().addToLoad(componentConfig);
     kernel_ = std::make_unique<sen::kernel::TestKernel>(bootLoader->getConfig());
 
-        Recording recording;
-        recording.reserve(lineCount);
-
-        u64 recordingCount = 0;
-        while (std::getline(recordingFileStream, line))
-        {
-            if (line.empty())
-                continue;
-
-            FrameData data;
-
-            auto frame = nlohmann::json::parse(line);
-
-            data.frameNumber = frame["frame"];
-            data.time = frame["t"];
-            data.platforms.reserve(frame["units"].size());
-
-            for (const auto& unit : frame["units"])
-            {
-                PlatformData platformData;
-                platformData.type = unit["level1"];
-                platformData.name = unit["name"];
-                platformData.id = unit["id"];
-                platformData.spatial.latitude = unit["lat"];
-                platformData.spatial.longitude = unit["lon"];
-                platformData.spatial.altitude = unit["alt"];
-                data.platforms.push_back(std::move(platformData));
-            }
-
-            recording.push_back(std::move(data));
-            recordingCount++;
-            {
-                std::lock_guard lock(uiState.mutex);
-                uiState.readingProgress =
-                    static_cast<f64>(recordingCount) / static_cast<f64>(lineCount);
-            }
-            screen.PostEvent(ftxui::Event::Custom);
-        }
-
-    logger->info("Finished reading the content of the recording");
-    logger->info("-------------------------------------------------------------");
-    logger->info("Number of frames            : {} frames", recording.size());
-    logger->info("Recording duration of frames: {} seconds", recording.back().time);
-    logger->info("-------------------------------------------------------------");
-
     f64 currentTime = 0;
     u64 recordingFrame = 0;
     const f64 finalTime = recording.back().time;
     bool recordingFinished = false;
-
-    logger->info("Converting recording");
 
     // Kernel loop
     while (!recordingFinished)

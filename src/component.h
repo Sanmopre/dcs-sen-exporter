@@ -16,7 +16,7 @@
 class DcsComponent : public sen::kernel::Component
 {
 public:
-    DcsComponent(const sen::Duration& tickDuration, const std::string& publishingBus, const Mappings& mappings, spdlog::logger* logger);
+    DcsComponent(sen::Duration tickDuration, std::string publishingBus, Mappings mappings, spdlog::logger* logger);
     ~DcsComponent() override = default;
 
     sen::kernel::FuncResult load(sen::kernel::LoadApi&&) override;
@@ -33,9 +33,9 @@ private:
 
 private:
     spdlog::logger* logger_;
-    const sen::Duration& tickDuration_;
-    const std::string publishingBus_;
-    const Mappings& mappings_;
+    sen::Duration tickDuration_;
+    std::string publishingBus_;
+    Mappings mappings_;
 
 private:
     std::unordered_map<u64, std::shared_ptr<PhysicalEntityManager>> managers_;
