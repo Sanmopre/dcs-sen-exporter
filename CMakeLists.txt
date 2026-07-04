@@ -10,7 +10,6 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{SEN_PATH}/cmake")
 find_package(sen REQUIRED)
 
 # Add submodules
-add_subdirectory(submodules/spdlog)
 add_subdirectory(submodules/cli11)
 add_subdirectory(submodules/ftxui)
 

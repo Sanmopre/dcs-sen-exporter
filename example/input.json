@@ -1,5 +1,5 @@
 {
-  "recording": "../../example/recording.ndjson",
+  "recording": "../example/recording.ndjson",
   "outputFolder": ".",
   "outputRecording": "DCS_Planes",
   "bus": "dcs.mission",
@@ -69,7 +69,6 @@
       "specific": 8,
       "extra": 0
     },
-
     "SA-11 Buk CC 9S470M1":
     {
       "kind": 1,
