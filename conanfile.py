@@ -1,6 +1,6 @@
 from conan import ConanFile
 
-class MyProjectConan(ConanFile):
+class DcsSenExporter(ConanFile):
     name = "sen_dcs_exporter"
     version = "0.1.0"
     settings = "os", "arch", "compiler", "build_type"
