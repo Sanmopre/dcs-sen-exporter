@@ -9,13 +9,21 @@ sen::kernel::FuncResult DcsComponent::load(sen::kernel::LoadApi &&load_api) {
     return Component::load(std::move(load_api));
 }
 
-sen::kernel::PassResult DcsComponent::init(sen::kernel::InitApi &&api) {
+sen::kernel::PassResult DcsComponent::init(sen::kernel::InitApi &&api)
+{
     source_ = api.getSource(publishingBus_);
+
+    api.getTypes().add(rpr::AircraftBase<>::meta());
+    api.getTypes().add(rpr::GroundVehicleBase<>::meta());
+    api.getTypes().add(rpr::SurfaceVesselBase<>::meta());
+    api.getTypes().add(rpr::MunitionBase<>::meta());
+    api.getTypes().add(rpr::PhysicalEntityBase<>::meta());
+
     return Component::init(std::move(api));
 }
 
 sen::kernel::FuncResult DcsComponent::run(sen::kernel::RunApi &api) {
-    return api.execLoop(tickDuration_, [this, &api]() {});
+    return api.execLoop(tickDuration_, []() {});
 }
 
 sen::kernel::FuncResult DcsComponent::unload(sen::kernel::UnloadApi &&api) {

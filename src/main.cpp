@@ -110,6 +110,13 @@ int main(int argc, char **argv) {
     auto sink = std::make_shared<FtxuiSink>(uiState, screen);
     const auto logger = std::make_shared<spdlog::logger>("dcs", sink);
 
+    spdlog::apply_all([&](const std::shared_ptr<spdlog::logger>& logger)
+    {
+        logger->sinks().clear();
+        logger->sinks().push_back(sink);
+    });
+
+
     spdlog::set_default_logger(logger);
 
     // FTXUI Renderer application
@@ -160,7 +167,15 @@ int main(int argc, char **argv) {
         }
 
         return ftxui::vbox({
-            ftxui::text("Digital Combat Simulator <=> Sen") | ftxui::bold | ftxui::center,
+            ftxui::separator(),
+            ftxui::text(R"(
+ ______      ______   ______       _              _       ______   ________  ____  _____
+|_   _ `.  .' ___  |.' ____ \     / /            \ \    .' ____ \ |_   __  ||_   \|_   _|
+  | | `. \/ .'   \_|| (___ \_|   / /______  ______\ \   | (___ \_|  | |_ \_|  |   \ | |
+  | |  | || |        _.____`.   < <|______||______|> >   _.____`.   |  _| _   | |\ \| |
+ _| |_.' /\ `.___.'\| \____) |   \ \              / /   | \____) | _| |__/ | _| |_\   |_
+|______.'  `.____ .' \______.'    \_\            /_/     \______.'|________||_____|\____|
+)") | ftxui::bold | ftxui::center,
             ftxui::separator(),
             ftxui::text("Reading"),
             ftxui::gauge(readingProgress) | ftxui::color(ftxui::Color::Blue),
@@ -275,7 +290,7 @@ int main(int argc, char **argv) {
             Mappings mappings;
             fillMappings(inputJsonFile["mappings"], mappings);
 
-            component_ = std::make_shared<DcsComponent>(std::chrono::milliseconds(1), "dcs.mission",
+            component_ = std::make_shared<DcsComponent>(std::chrono::milliseconds(1), inputJsonFile.value("bus", "dcs.mission"),
                                                         mappings, logger.get());
 
             const std::string yaml =
@@ -361,9 +376,14 @@ int main(int argc, char **argv) {
             }
 
             // Calculate elapsed time
-            auto elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - start);
+            auto elapsed = std::chrono::duration<f64>(std::chrono::steady_clock::now() - start);
 
             logger->info("Finished conversion in {:.3f} s", elapsed.count());
+
+            // Sleep for half a second
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+            screen.ExitLoopClosure()();
             return 0;
         } catch (const std::exception &e) {
             logger->critical("Unhandled exception: {}", e.what());
@@ -378,6 +398,8 @@ int main(int argc, char **argv) {
 
     screen.Loop(renderer);
     worker.join();
+
+    spdlog::shutdown();
 
     return 0;
 }

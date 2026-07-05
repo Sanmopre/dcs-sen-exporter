@@ -4,7 +4,8 @@
   "outputRecording": "DCS_Planes",
   "bus": "dcs.mission",
   "mappings":
-  {"MiG-25PD":
+  {
+    "MiG-25PD":
   {
     "kind": 1,
     "domain": 2,
