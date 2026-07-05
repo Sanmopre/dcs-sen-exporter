@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(sen REQUIRED)
 find_package(CLI11 REQUIRED)
 find_package(ftxui REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 add_executable(${PROJECT_NAME}
 src/main.cpp
@@ -36,6 +37,5 @@ target_link_libraries(${PROJECT_NAME}
         spdlog::spdlog
         CLI11::CLI11
         ftxui::ftxui
+        nlohmann_json::nlohmann_json
 )
-
-target_include_directories(${PROJECT_NAME} PUBLIC submodules/json/include)
