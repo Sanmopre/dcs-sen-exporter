@@ -6,12 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Find sen package
-list(APPEND CMAKE_PREFIX_PATH "$ENV{SEN_PATH}/cmake")
 find_package(sen REQUIRED)
-
-# Add submodules
-add_subdirectory(submodules/cli11)
-add_subdirectory(submodules/ftxui)
+find_package(CLI11 REQUIRED)
+find_package(ftxui REQUIRED)
 
 add_executable(${PROJECT_NAME}
 src/main.cpp

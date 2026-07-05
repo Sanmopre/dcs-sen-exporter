@@ -25,7 +25,9 @@
 #include "sen/kernel/test_kernel.h"
 
 // fxtui
-#include <ftxui/ftxui.hpp>
+#include <ftxui/component/component.hpp>
+#include <ftxui/component/event.hpp>
+#include <ftxui/component/screen_interactive.hpp>
 
 struct LogEntry {
     std::string timestamp;
@@ -166,9 +168,11 @@ int main(int argc, char **argv) {
             }
         }
 
+
+
         return ftxui::vbox({
             ftxui::separator(),
-            ftxui::text(R"(
+            ftxui::paragraph(R"(
  ______      ______   ______       _              _       ______   ________  ____  _____
 |_   _ `.  .' ___  |.' ____ \     / /            \ \    .' ____ \ |_   __  ||_   \|_   _|
   | | `. \/ .'   \_|| (___ \_|   / /______  ______\ \   | (___ \_|  | |_ \_|  |   \ | |
