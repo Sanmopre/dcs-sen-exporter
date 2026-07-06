@@ -22,4 +22,5 @@ class PhysicalEntityManager : public rpr::PhysicalEntityBase<> {
 
   private:
     sen::util::SettableDeadReckoner<rpr::PhysicalEntityBase<>> dr_;
+    std::optional<sen::util::Location> previousLocation;
 };

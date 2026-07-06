@@ -107,7 +107,7 @@ struct UiState {
 
         for (const auto &aircraft : frame["units"]) {
             PlatformData platformData;
-            platformData.type = aircraft["level1"];
+            platformData.type = getUnitType(aircraft);
             platformData.name = aircraft["name"];
             platformData.id = aircraft["id"];
             platformData.spatial.latitude = aircraft["lat"];

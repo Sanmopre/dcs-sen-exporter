@@ -18,6 +18,7 @@ sen::kernel::PassResult DcsComponent::init(sen::kernel::InitApi &&api)
     api.getTypes().add(rpr::SurfaceVesselBase<>::meta());
     api.getTypes().add(rpr::MunitionBase<>::meta());
     api.getTypes().add(rpr::PhysicalEntityBase<>::meta());
+    api.getTypes().add(rpr::ExpendablesBase<>::meta());
 
     return Component::init(std::move(api));
 }
@@ -30,7 +31,8 @@ sen::kernel::FuncResult DcsComponent::unload(sen::kernel::UnloadApi &&api) {
     return Component::unload(std::move(api));
 }
 
-void DcsComponent::newFrame(const FrameData &frame) {
+void DcsComponent::newFrame(const FrameData &frame)
+{
     std::vector<u64> seenEntities;
     seenEntities.reserve(frame.platforms.size());
 
@@ -50,32 +52,37 @@ void DcsComponent::newFrame(const FrameData &frame) {
             auto entityType = getEntityType(platform.name);
 
             switch (platform.type) {
-            case PlatformType::AIRCRAFT:
+            case UnitType::AIRCRAFT:
                 managers_.try_emplace(
                     platform.id,
                     std::make_shared<rpr::AircraftBase<rpr::PlatformBase<PhysicalEntityManager>>>(
                         name, entityType, rpr::EntityIdentifierStruct{}, entityType));
                 break;
-            case PlatformType::GROUND_VEHICLE:
+            case UnitType::GROUND_VEHICLE:
                 managers_.try_emplace(
                     platform.id,
                     std::make_shared<
                         rpr::GroundVehicleBase<rpr::PlatformBase<PhysicalEntityManager>>>(
                         name, entityType, rpr::EntityIdentifierStruct{}, entityType));
                 break;
-            case PlatformType::SURFACE_VESSEL:
+            case UnitType::SURFACE_VESSEL:
                 managers_.try_emplace(
                     platform.id,
                     std::make_shared<
                         rpr::SurfaceVesselBase<rpr::PlatformBase<PhysicalEntityManager>>>(
                         name, entityType, rpr::EntityIdentifierStruct{}, entityType));
                 break;
-            case PlatformType::MUNITION:
+            case UnitType::MUNITION:
                 managers_.try_emplace(
                     platform.id, std::make_shared<rpr::MunitionBase<PhysicalEntityManager>>(
                                      name, entityType, rpr::EntityIdentifierStruct{}, entityType));
                 break;
-            default:
+            case UnitType::EXPENDABLE:
+                managers_.try_emplace(
+                    platform.id, std::make_shared<rpr::ExpendablesBase<PhysicalEntityManager>>(
+                                     name, entityType, rpr::EntityIdentifierStruct{}, entityType));
+                break;
+            case UnitType::UNKNOWN:
                 managers_.try_emplace(
                     platform.id, std::make_shared<PhysicalEntityManager>(
                                      name, entityType, rpr::EntityIdentifierStruct{}, entityType));
@@ -96,7 +103,11 @@ void DcsComponent::newFrame(const FrameData &frame) {
         }
     }
 
-    for (const auto &key : toDelete) {
+    for (const auto &key : toDelete)
+    {
+        logger_->info("Deleting entity {}", key);
+        // TODO: Make this work, it crashes
+        //source_->remove(managers_.at(key));
         managers_.erase(key);
     }
 }

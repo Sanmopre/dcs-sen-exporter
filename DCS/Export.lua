@@ -97,7 +97,7 @@ function LuaExportAfterNextFrame()
     local first = true
 
     for id, obj in pairs(objects) do
-        if obj and obj.Type and obj.LatLongAlt then
+        if obj and obj.Type and obj.LatLongAlt and obj.Position then
 
             if not first then
                 out:write(",")
@@ -114,6 +114,9 @@ function LuaExportAfterNextFrame()
                 "\"lat\":%.8f," ..
                 "\"lon\":%.8f," ..
                 "\"alt\":%.2f," ..
+                "\"x\":%.3f," ..
+                "\"y\":%.3f," ..
+                "\"z\":%.3f," ..
                 "\"yaw\":%.6f," ..
                 "\"pitch\":%.6f," ..
                 "\"roll\":%.6f}",
@@ -131,6 +134,10 @@ function LuaExportAfterNextFrame()
                 num(obj.LatLongAlt.Lat),
                 num(obj.LatLongAlt.Long),
                 num(obj.LatLongAlt.Alt),
+
+                num(obj.Position.x),
+                num(obj.Position.y),
+                num(obj.Position.z),
 
                 num(obj.Heading),
                 num(obj.Pitch),

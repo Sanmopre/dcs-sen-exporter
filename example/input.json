@@ -1,5 +1,5 @@
 {
-  "recording": "../example/recording.ndjson",
+  "recording": "../example/1_vs_1.ndjson",
   "outputFolder": ".",
   "outputRecording": "DCS_Planes",
   "bus": "dcs.mission",

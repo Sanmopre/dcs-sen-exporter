@@ -7,7 +7,23 @@ PhysicalEntityManager::PhysicalEntityManager(const std::string &name,
     : PhysicalEntityBase<>(name, entityType, entityIdentifier, alternateEntityType),
       dr_(*this, {}) {}
 
-void PhysicalEntityManager::updateSpatial(const SpatialData &data) {
+void PhysicalEntityManager::updateSpatial(const SpatialData &data)
+{
+    sen::util::Velocity velocity;
+    if (!previousLocation.has_value())
+    {
+        previousLocation = data.location;
+    }
+    else
+    {
+        // Adjusted for NED
+         velocity = sen::util::Velocity{
+            previousLocation.value().z - data.location.z,
+            previousLocation.value().x - data.location.x,
+            - (previousLocation.value().y - data.location.y)
+        };
+    }
+
     sen::util::GeodeticSituation situation;
     situation.worldLocation.latitude = data.latitude;
     situation.worldLocation.longitude = data.longitude;
@@ -15,6 +31,7 @@ void PhysicalEntityManager::updateSpatial(const SpatialData &data) {
     situation.orientation.phi = data.roll;
     situation.orientation.theta = data.pitch;
     situation.orientation.psi = data.yaw;
+    situation.velocityVector = velocity;
 
     dr_.setSpatial(situation);
 }

@@ -13,23 +13,52 @@
 // nlohmann
 #include "nlohmann/json.hpp"
 
-struct SpatialData {
+// sen utils
+#include <sen/util/dr/algorithms.h>
+
+struct SpatialData
+{
     f64 latitude;
     f64 longitude;
     f64 altitude;
     f64 yaw;
     f64 pitch;
     f64 roll;
+    sen::util::Location location;
 };
 
-enum PlatformType : u8 { AIRCRAFT = 1, GROUND_VEHICLE = 2, SURFACE_VESSEL = 3, MUNITION = 4 };
+enum UnitType : u8 { AIRCRAFT = 1, GROUND_VEHICLE = 2, SURFACE_VESSEL = 3, MUNITION = 4, EXPENDABLE = 5, UNKNOWN = 6};
 
 struct PlatformData {
-    PlatformType type;
+    UnitType type;
     std::string name;
     u64 id;
     SpatialData spatial;
 };
+
+[[nodiscard]] inline UnitType getUnitType(const nlohmann::json& json)
+{
+    const auto level1 = json.value("level1", 1);
+    const auto level2 = json.value("level2", 1);
+
+    switch (level1)
+    {
+    case 1:
+        if (level2 == 3)
+        {
+            return UnitType::EXPENDABLE;
+        }
+        return UnitType::AIRCRAFT;
+    case 2:
+        return UnitType::GROUND_VEHICLE;
+    case 3:
+        return UnitType::SURFACE_VESSEL;
+    case 4:
+        return UnitType::MUNITION;
+    default:
+        return UnitType::UNKNOWN;
+    }
+}
 
 struct FrameData {
     u64 frameNumber;
