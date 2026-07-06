@@ -17,6 +17,7 @@ src/main.cpp
         src/physical_entity_manager.h
         src/data_definitions.h
         src/component.cpp
+        src/recording_processing.h
         src/component.h)
 
 sen_generate_cpp(
