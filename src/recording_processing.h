@@ -113,6 +113,10 @@ struct UiState {
             platformData.spatial.latitude = aircraft["lat"];
             platformData.spatial.longitude = aircraft["lon"];
             platformData.spatial.altitude = aircraft["alt"];
+            platformData.spatial.location.x = aircraft["x"];
+            platformData.spatial.location.y = aircraft["y"];
+            platformData.spatial.location.z = aircraft["z"];
+
             data.platforms.push_back(std::move(platformData));
         }
 

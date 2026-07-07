@@ -1,10 +1,64 @@
 {
-  "recording": "../example/1_vs_1.ndjson",
+  "recording": "../example/solo_flight.ndjson",
   "outputFolder": ".",
   "outputRecording": "DCS_Planes",
   "bus": "dcs.mission",
   "mappings":
   {
+    "Ural ATsP-6": {
+      "kind": 1,
+      "domain": 1,
+      "country": 222,
+      "category": 2,
+      "subcategory": 3,
+      "specific": 0,
+      "extra": 0
+    },
+    "ZIL-131 APA-80": {
+      "kind": 1,
+      "domain": 1,
+      "country": 222,
+      "category": 2,
+      "subcategory": 4,
+      "specific": 0,
+      "extra": 0
+    },
+    "fueltank_cargo": {
+      "kind": 1,
+      "domain": 1,
+      "country": 0,
+      "category": 4,
+      "subcategory": 0,
+      "specific": 0,
+      "extra": 0
+    },
+    "iso_container": {
+      "kind": 1,
+      "domain": 1,
+      "country": 0,
+      "category": 4,
+      "subcategory": 0,
+      "specific": 0,
+      "extra": 0
+    },
+    "outpost": {
+      "kind": 1,
+      "domain": 1,
+      "country": 0,
+      "category": 4,
+      "subcategory": 0,
+      "specific": 0,
+      "extra": 0
+    },
+    "ZIL-4331": {
+      "kind": 1,
+      "domain": 1,
+      "country": 222,
+      "category": 2,
+      "subcategory": 2,
+      "specific": 0,
+      "extra": 0
+    },
     "MiG-25PD":
   {
     "kind": 1,
