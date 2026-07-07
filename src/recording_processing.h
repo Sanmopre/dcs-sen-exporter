@@ -113,6 +113,9 @@ struct UiState {
             platformData.spatial.latitude = aircraft["lat"];
             platformData.spatial.longitude = aircraft["lon"];
             platformData.spatial.altitude = aircraft["alt"];
+            platformData.spatial.yaw = aircraft["yaw"];
+            platformData.spatial.pitch = aircraft["pitch"];
+            platformData.spatial.roll = aircraft["roll"];
             platformData.spatial.location.x = aircraft["x"];
             platformData.spatial.location.y = aircraft["y"];
             platformData.spatial.location.z = aircraft["z"];
