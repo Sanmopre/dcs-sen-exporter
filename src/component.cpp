@@ -33,6 +33,16 @@ sen::kernel::FuncResult DcsComponent::unload(sen::kernel::UnloadApi &&api) {
 
 void DcsComponent::newFrame(const FrameData &frame)
 {
+    // Delete entities from previous frame that are not present now
+    for (const auto &key : toDeleteNextFrame_)
+    {
+        const auto& manager = managers_.at(key);
+        logger_->debug("Removing entity '{}'", manager->getName());
+        source_->remove(managers_.at(key));
+        managers_.erase(key);
+    }
+    toDeleteNextFrame_.clear();
+
     std::vector<u64> seenEntities;
     seenEntities.reserve(frame.platforms.size());
 
@@ -42,7 +52,7 @@ void DcsComponent::newFrame(const FrameData &frame)
 
         if (const auto it = managers_.find(platform.id); it != managers_.end()) {
             // Update entity
-            managers_.at(platform.id)->updateSpatial(platform.spatial);
+            managers_.at(platform.id)->updateSpatial(platform.spatial, frame.time);
         } else {
             // Create entity
             const auto name = std::string("dcs_")
@@ -88,27 +98,18 @@ void DcsComponent::newFrame(const FrameData &frame)
                                      name, entityType, rpr::EntityIdentifierStruct{}, entityType));
             }
 
-            managers_.at(platform.id)->updateSpatial(platform.spatial);
+            managers_.at(platform.id)->updateSpatial(platform.spatial, frame.time);
             source_->add(managers_.at(platform.id));
         }
     }
 
     // Delete entities that
-    std::vector<u64> toDelete;
-    toDelete.reserve(managers_.size());
+    toDeleteNextFrame_.reserve(managers_.size());
     for (const auto &[key, manager] : managers_) {
         if (const auto it = std::find(seenEntities.begin(), seenEntities.end(), key);
             it == seenEntities.end()) {
-            toDelete.emplace_back(key);
+            toDeleteNextFrame_.emplace_back(key);
         }
-    }
-
-    for (const auto &key : toDelete)
-    {
-        logger_->info("Deleting entity {}", key);
-        // TODO: Make this work, it crashes
-        //source_->remove(managers_.at(key));
-        managers_.erase(key);
     }
 }
 

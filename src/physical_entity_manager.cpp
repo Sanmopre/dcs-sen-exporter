@@ -7,21 +7,29 @@ PhysicalEntityManager::PhysicalEntityManager(const std::string &name,
     : PhysicalEntityBase<>(name, entityType, entityIdentifier, alternateEntityType),
       dr_(*this, {}) {}
 
-void PhysicalEntityManager::updateSpatial(const SpatialData &data)
+void PhysicalEntityManager::updateSpatial(const SpatialData &data, f64 timeStamp)
 {
     sen::util::Velocity velocity;
     if (!previousLocation.has_value())
     {
         previousLocation = data.location;
+        previousTimeStampSeconds = timeStamp;
     }
     else
     {
-        // Adjusted for NED
-         velocity = sen::util::Velocity{
-            previousLocation.value().z - data.location.z,
-            previousLocation.value().x - data.location.x,
-            - (previousLocation.value().y - data.location.y)
-        };
+
+        if (const f64 dt = timeStamp - previousTimeStampSeconds; dt > 0.0)
+        {
+            // Convert displacement to meters/second (NED coordinates)
+            velocity = sen::util::Velocity{
+                (previousLocation->z - data.location.z) / dt,
+                (previousLocation->x - data.location.x) / dt,
+                -(previousLocation->y - data.location.y) / dt
+            };
+        }
+
+        previousLocation = data.location;
+        previousTimeStampSeconds = timeStamp;
     }
 
     sen::util::GeodeticSituation situation;

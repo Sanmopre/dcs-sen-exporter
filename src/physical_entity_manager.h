@@ -18,9 +18,10 @@ class PhysicalEntityManager : public rpr::PhysicalEntityBase<> {
                           const rpr::EntityIdentifierStruct &entityIdentifier,
                           const rpr::EntityTypeStruct &alternateEntityType);
 
-    void updateSpatial(const SpatialData &data);
+    void updateSpatial(const SpatialData &data, f64 timeStamp);
 
   private:
     sen::util::SettableDeadReckoner<rpr::PhysicalEntityBase<>> dr_;
     std::optional<sen::util::Location> previousLocation;
+    f64 previousTimeStampSeconds;
 };

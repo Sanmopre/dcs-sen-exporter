@@ -39,4 +39,5 @@ class DcsComponent : public sen::kernel::Component {
   private:
     std::unordered_map<u64, std::shared_ptr<PhysicalEntityManager>> managers_;
     std::shared_ptr<sen::ObjectSource> source_;
+    std::vector<u64> toDeleteNextFrame_;
 };

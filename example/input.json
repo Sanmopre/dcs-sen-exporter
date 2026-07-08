@@ -1,5 +1,5 @@
 {
-  "recording": "../example/solo_flight.ndjson",
+  "recording": "../example/carrier_flyby.ndjson",
   "outputFolder": ".",
   "outputRecording": "DCS_Planes",
   "bus": "dcs.mission",
