@@ -3,5 +3,8 @@ CLI tool that transforms a Digital Combat Simulator mission recording into a sen
 
 ## Instalation
 
+![Demo](docs/dcs-sen-exporter.drawio.svg)
+
 ## Demo
+![Demo](docs/dcs.gif)
 ![Demo](docs/dcs-sen-exporter.gif)
