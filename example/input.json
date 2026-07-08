@@ -462,6 +462,55 @@
       "subcategory": 1,
       "specific": 0,
       "extra": 0
+    },
+    "Zil-131 APA-80": {
+      "kind": 1,
+      "domain": 1,
+      "country": 222,
+      "category": 2,
+      "subcategory": 4,
+      "specific": 0,
+      "extra": 0
+    },
+
+    "m117_cargo": {
+      "kind": 1,
+      "domain": 1,
+      "country": 0,
+      "category": 4,
+      "subcategory": 0,
+      "specific": 0,
+      "extra": 0
+    },
+
+    "Su-25T": {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 1,
+      "subcategory": 8,
+      "specific": 0,
+      "extra": 0
+    },
+
+    "Ural-375": {
+      "kind": 1,
+      "domain": 1,
+      "country": 222,
+      "category": 2,
+      "subcategory": 2,
+      "specific": 0,
+      "extra": 0
+    },
+
+    "Mi-8MT": {
+      "kind": 1,
+      "domain": 2,
+      "country": 222,
+      "category": 2,
+      "subcategory": 3,
+      "specific": 0,
+      "extra": 0
     }
   }
 }

@@ -93,38 +93,16 @@ struct UiState {
     recording.reserve(lineCount);
 
     u64 recordingCount = 0;
-    while (std::getline(recordingFileStream, line)) {
+    while (std::getline(recordingFileStream, line))
+    {
         if (line.empty())
             continue;
 
-        FrameData data;
-
-        auto frame = nlohmann::json::parse(line);
-
-        data.frameNumber = frame["frame"];
-        data.time = frame["t"];
-        data.platforms.reserve(frame["units"].size());
-
-        for (const auto &aircraft : frame["units"]) {
-            PlatformData platformData;
-            platformData.type = getUnitType(aircraft);
-            platformData.name = aircraft["name"];
-            platformData.id = aircraft["id"];
-            platformData.spatial.latitude = aircraft["lat"];
-            platformData.spatial.longitude = aircraft["lon"];
-            platformData.spatial.altitude = aircraft["alt"];
-            platformData.spatial.yaw = aircraft["yaw"];
-            platformData.spatial.pitch = aircraft["pitch"];
-            platformData.spatial.roll = aircraft["roll"];
-            platformData.spatial.location.x = aircraft["x"];
-            platformData.spatial.location.y = aircraft["y"];
-            platformData.spatial.location.z = aircraft["z"];
-
-            data.platforms.push_back(std::move(platformData));
-        }
-
-        recording.push_back(std::move(data));
+        // Read data
+        recording.emplace_back(getFrame(nlohmann::json::parse(line)));
         recordingCount++;
+
+        // Update FXTUI progress bar
         {
             std::lock_guard lock(uiState.mutex);
             uiState.readingProgress =

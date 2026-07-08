@@ -5,6 +5,26 @@ local out = nil
 local probe = nil
 local frame = 0
 
+local FRAME_KEY      = "frame"
+local TIMESTAMP_KEY  = "t"
+local UNITS_KEY      = "units"
+local ID_KEY         = "id"
+local NAME_KEY       = "name"
+local TYPE_KEY       = "type"
+local LEVEL1_KEY     = "level1"
+local LEVEL2_KEY     = "level2"
+local COUNTRY_KEY    = "country"
+local COALITION_KEY  = "coalition"
+local LATITUDE_KEY   = "lat"
+local LONGITUDE_KEY  = "lon"
+local ALTITUDE_KEY   = "alt"
+local X_KEY          = "x"
+local Y_KEY          = "y"
+local Z_KEY          = "z"
+local YAW_KEY        = "yaw"
+local PITCH_KEY      = "pitch"
+local ROLL_KEY       = "roll"
+
 local function sanitize_filename(s)
     s = tostring(s or "unknown_mission")
     s = s:gsub("\\", "/")
@@ -90,9 +110,13 @@ function LuaExportAfterNextFrame()
     end
 
     out:write(string.format(
-        "{\"frame\":%d,\"t\":%.6f,\"units\":[",
+        "{\"%s\":%d,\"%s\":%.6f,\"%s\":[",
+        FRAME_KEY,
         frame,
-        t))
+        TIMESTAMP_KEY,
+        t,
+        UNITS_KEY
+    ))
 
     local first = true
 
@@ -105,43 +129,43 @@ function LuaExportAfterNextFrame()
             first = false
 
             out:write(string.format(
-                "{\"id\":%d," ..
-                "\"name\":%s," ..
-                "\"level1\":%d," ..
-                "\"level2\":%d," ..
-                "\"country\":%d," ..
-                "\"coalition\":%d," ..
-                "\"lat\":%.8f," ..
-                "\"lon\":%.8f," ..
-                "\"alt\":%.2f," ..
-                "\"x\":%.3f," ..
-                "\"y\":%.3f," ..
-                "\"z\":%.3f," ..
-                "\"yaw\":%.6f," ..
-                "\"pitch\":%.6f," ..
-                "\"roll\":%.6f}",
+                "{\"%s\":%d," ..
+                "\"%s\":%s," ..
+                "\"%s\":%d," ..
+                "\"%s\":%d," ..
+                "\"%s\":%d," ..
+                "\"%s\":%d," ..
+                "\"%s\":%.8f," ..
+                "\"%s\":%.8f," ..
+                "\"%s\":%.2f," ..
+                "\"%s\":%.3f," ..
+                "\"%s\":%.3f," ..
+                "\"%s\":%.3f," ..
+                "\"%s\":%.6f," ..
+                "\"%s\":%.6f," ..
+                "\"%s\":%.6f}",
 
-                id,
+                ID_KEY, id,
 
-                jstr(obj.Name),
+                NAME_KEY, jstr(obj.Name),
 
-                num(obj.Type.level1),
-                num(obj.Type.level2),
+                LEVEL1_KEY, num(obj.Type.level1),
+                LEVEL2_KEY, num(obj.Type.level2),
 
-                num(obj.Country),
-                num(obj.CoalitionID),
+                COUNTRY_KEY, num(obj.Country),
+                COALITION_KEY, num(obj.CoalitionID),
 
-                num(obj.LatLongAlt.Lat),
-                num(obj.LatLongAlt.Long),
-                num(obj.LatLongAlt.Alt),
+                LATITUDE_KEY, num(obj.LatLongAlt.Lat),
+                LONGITUDE_KEY, num(obj.LatLongAlt.Long),
+                ALTITUDE_KEY, num(obj.LatLongAlt.Alt),
 
-                num(obj.Position.x),
-                num(obj.Position.y),
-                num(obj.Position.z),
+                X_KEY, num(obj.Position.x),
+                Y_KEY, num(obj.Position.y),
+                Z_KEY, num(obj.Position.z),
 
-                num(obj.Heading),
-                num(obj.Pitch),
-                num(obj.Bank)
+                YAW_KEY, num(obj.Heading),
+                PITCH_KEY, num(obj.Pitch),
+                ROLL_KEY, num(obj.Bank)
             ))
         end
     end
