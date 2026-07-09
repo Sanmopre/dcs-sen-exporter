@@ -9,8 +9,7 @@ sen::kernel::FuncResult DcsComponent::load(sen::kernel::LoadApi &&load_api) {
     return Component::load(std::move(load_api));
 }
 
-sen::kernel::PassResult DcsComponent::init(sen::kernel::InitApi &&api)
-{
+sen::kernel::PassResult DcsComponent::init(sen::kernel::InitApi &&api) {
     source_ = api.getSource(publishingBus_);
 
     api.getTypes().add(rpr::AircraftBase<>::meta());
@@ -31,12 +30,10 @@ sen::kernel::FuncResult DcsComponent::unload(sen::kernel::UnloadApi &&api) {
     return Component::unload(std::move(api));
 }
 
-void DcsComponent::newFrame(const FrameData &frame)
-{
+void DcsComponent::newFrame(const FrameData &frame) {
     // Delete entities from previous frame that are not present now
-    for (const auto &key : toDeleteNextFrame_)
-    {
-        const auto& manager = managers_.at(key);
+    for (const auto &key : toDeleteNextFrame_) {
+        const auto &manager = managers_.at(key);
         logger_->debug("Removing entity '{}'", manager->getName());
         source_->remove(managers_.at(key));
         managers_.erase(key);

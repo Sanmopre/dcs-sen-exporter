@@ -42,8 +42,9 @@ struct UiState {
     }
 };
 
-[[nodiscard]] inline int processRecording(spdlog::logger* logger, const std::filesystem::path& inputFile, UiState& uiState, ftxui::ScreenInteractive &screen)
-{
+[[nodiscard]] inline int processRecording(spdlog::logger *logger,
+                                          const std::filesystem::path &inputFile, UiState &uiState,
+                                          ftxui::ScreenInteractive &screen) {
     // Start timer
     auto start = std::chrono::steady_clock::now();
 
@@ -93,8 +94,7 @@ struct UiState {
     recording.reserve(lineCount);
 
     u64 recordingCount = 0;
-    while (std::getline(recordingFileStream, line))
-    {
+    while (std::getline(recordingFileStream, line)) {
         if (line.empty())
             continue;
 
@@ -129,11 +129,10 @@ struct UiState {
     Mappings mappings;
     fillMappings(inputJsonFile["mappings"], mappings);
 
-    component_ = std::make_shared<DcsComponent>(std::chrono::milliseconds(1), inputJsonFile.value("bus", "dcs.mission"),
-                                                mappings, logger);
+    component_ = std::make_shared<DcsComponent>(
+        std::chrono::milliseconds(1), inputJsonFile.value("bus", "dcs.mission"), mappings, logger);
 
-    const std::string yaml =
-        fmt::format(R"(load:
+    const std::string yaml = fmt::format(R"(load:
   - name: recorder
     group: 1
     recordings:
@@ -145,9 +144,9 @@ struct UiState {
         autoStart: true
         selections:
           - SELECT * FROM {})",
-                    inputJsonFile.value("outputRecording", "DCS_Recording"),
-                    inputJsonFile.value("outputFolder", "."),
-                    inputJsonFile.value("bus", "dcs.mission"));
+                                         inputJsonFile.value("outputRecording", "DCS_Recording"),
+                                         inputJsonFile.value("outputFolder", "."),
+                                         inputJsonFile.value("bus", "dcs.mission"));
 
     const auto bootLoader = sen::kernel::Bootloader::fromYamlString(yaml, false);
 

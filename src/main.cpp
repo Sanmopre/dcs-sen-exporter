@@ -81,12 +81,10 @@ int main(int argc, char **argv) {
     auto sink = std::make_shared<FtxuiSink>(uiState, screen);
     const auto logger = std::make_shared<spdlog::logger>("dcs", sink);
 
-    spdlog::apply_all([&](const std::shared_ptr<spdlog::logger>& logger)
-    {
+    spdlog::apply_all([&](const std::shared_ptr<spdlog::logger> &logger) {
         logger->sinks().clear();
         logger->sinks().push_back(sink);
     });
-
 
     spdlog::set_default_logger(logger);
 
@@ -146,7 +144,8 @@ int main(int argc, char **argv) {
   | |  | || |        _.____`.   < <|______||______|> >   _.____`.   |  _| _   | |\ \| |
  _| |_.' /\ `.___.'\| \____) |   \ \              / /   | \____) | _| |__/ | _| |_\   |_
 |______.'  `.____ .' \______.'    \_\            /_/     \______.'|________||_____|\____|
-)") | ftxui::bold | ftxui::center| ftxui::border,
+)") | ftxui::bold |
+                ftxui::center | ftxui::border,
             ftxui::separator(),
             ftxui::text("Reading"),
             ftxui::gauge(static_cast<f32>(readingProgress)) | ftxui::color(ftxui::Color::Blue),
@@ -159,13 +158,8 @@ int main(int argc, char **argv) {
         });
     });
 
-    std::thread worker(
-        processRecording,
-        logger.get(),
-        std::cref(inputFile),
-        std::ref(uiState),
-        std::ref(screen)
-    );
+    std::thread worker(processRecording, logger.get(), std::cref(inputFile), std::ref(uiState),
+                       std::ref(screen));
 
     screen.Loop(renderer);
     worker.join();

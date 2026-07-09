@@ -16,9 +16,7 @@
 // sen utils
 #include <sen/util/dr/algorithms.h>
 
-
-struct SpatialData
-{
+struct SpatialData {
     f64 latitude;
     f64 longitude;
     f64 altitude;
@@ -28,7 +26,14 @@ struct SpatialData
     sen::util::Location location;
 };
 
-enum UnitType : u8 { AIRCRAFT = 1, GROUND_VEHICLE = 2, SURFACE_VESSEL = 3, MUNITION = 4, EXPENDABLE = 5, UNKNOWN = 6};
+enum UnitType : u8 {
+    AIRCRAFT = 1,
+    GROUND_VEHICLE = 2,
+    SURFACE_VESSEL = 3,
+    MUNITION = 4,
+    EXPENDABLE = 5,
+    UNKNOWN = 6
+};
 
 struct PlatformData {
     UnitType type;
@@ -37,16 +42,13 @@ struct PlatformData {
     SpatialData spatial;
 };
 
-[[nodiscard]] inline UnitType getUnitType(const nlohmann::json& json)
-{
+[[nodiscard]] inline UnitType getUnitType(const nlohmann::json &json) {
     const auto level1 = json.value("level1", 1);
     const auto level2 = json.value("level2", 1);
 
-    switch (level1)
-    {
+    switch (level1) {
     case 1:
-        if (level2 == 3)
-        {
+        if (level2 == 3) {
             return UnitType::EXPENDABLE;
         }
         return UnitType::AIRCRAFT;
@@ -101,8 +103,7 @@ constexpr auto X_KEY = "x";
 constexpr auto Y_KEY = "y";
 constexpr auto Z_KEY = "z";
 
-[[nodiscard]] inline PlatformData getPlatformData(const nlohmann::json& json)
-{
+[[nodiscard]] inline PlatformData getPlatformData(const nlohmann::json &json) {
     PlatformData platformData;
     platformData.type = getUnitType(json);
     platformData.name = json[NAME_KEY];
@@ -120,16 +121,14 @@ constexpr auto Z_KEY = "z";
     return platformData;
 }
 
-[[nodiscard]] inline FrameData getFrame(const nlohmann::json& json)
-{
+[[nodiscard]] inline FrameData getFrame(const nlohmann::json &json) {
     FrameData data;
 
     data.frameNumber = json[FRAME_KEY];
     data.time = json[TIMESTAMP_KEY];
     data.platforms.reserve(json[UNITS_KEY].size());
 
-    for (const auto& unit : json[UNITS_KEY])
-    {
+    for (const auto &unit : json[UNITS_KEY]) {
         data.platforms.emplace_back(getPlatformData(unit));
     }
 

@@ -1,18 +1,18 @@
 cmake_minimum_required(VERSION 3.20)
-project(sen_dcs_exporter LANGUAGES CXX)
+project(dcs_sen_exporter LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Find sen package
+# Find packages
 find_package(sen REQUIRED)
 find_package(CLI11 REQUIRED)
 find_package(ftxui REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
 add_executable(${PROJECT_NAME}
-src/main.cpp
+        src/main.cpp
         src/physical_entity_manager.cpp
         src/physical_entity_manager.h
         src/data_definitions.h

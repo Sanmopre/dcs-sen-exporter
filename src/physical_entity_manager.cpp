@@ -7,25 +7,18 @@ PhysicalEntityManager::PhysicalEntityManager(const std::string &name,
     : PhysicalEntityBase<>(name, entityType, entityIdentifier, alternateEntityType),
       dr_(*this, {}) {}
 
-void PhysicalEntityManager::updateSpatial(const SpatialData &data, f64 timeStamp)
-{
+void PhysicalEntityManager::updateSpatial(const SpatialData &data, f64 timeStamp) {
     sen::util::Velocity velocity;
-    if (!previousLocation.has_value())
-    {
+    if (!previousLocation.has_value()) {
         previousLocation = data.location;
         previousTimeStampSeconds = timeStamp;
-    }
-    else
-    {
+    } else {
 
-        if (const f64 dt = timeStamp - previousTimeStampSeconds; dt > 0.0)
-        {
+        if (const f64 dt = timeStamp - previousTimeStampSeconds; dt > 0.0) {
             // Convert displacement to meters/second (NED coordinates)
-            velocity = sen::util::Velocity{
-                (previousLocation->z - data.location.z) / dt,
-                (previousLocation->x - data.location.x) / dt,
-                -(previousLocation->y - data.location.y) / dt
-            };
+            velocity = sen::util::Velocity{(previousLocation->z - data.location.z) / dt,
+                                           (previousLocation->x - data.location.x) / dt,
+                                           -(previousLocation->y - data.location.y) / dt};
         }
 
         previousLocation = data.location;
