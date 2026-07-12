@@ -5,6 +5,13 @@ local out = nil
 local probe = nil
 local frame = 0
 
+local TARGET_HZ = 60.0
+local EXPORT_INTERVAL = 1.0 / TARGET_HZ
+
+local callbackFrame = 0
+local exportedFrame = 0
+local nextExportTime = nil
+
 local FRAME_KEY      = "frame"
 local TIMESTAMP_KEY  = "t"
 local UNITS_KEY      = "units"
@@ -85,11 +92,36 @@ function LuaExportStart()
 end
 
 function LuaExportAfterNextFrame()
-    frame = frame + 1
+    callbackFrame = callbackFrame + 1
 
     local t = 0
     if LoGetModelTime then
         t = num(LoGetModelTime())
+    end
+
+    -- Initialize timing on the first callback.
+    if nextExportTime == nil then
+        nextExportTime = t
+    end
+
+    -- Mission restarted or model time moved backwards.
+    if t < nextExportTime - EXPORT_INTERVAL then
+        nextExportTime = t
+    end
+
+    -- Skip this callback until the next 60 Hz sample is due.
+    if t < nextExportTime then
+        return
+    end
+
+    -- Advance the target time rather than assigning t + interval,
+    -- which reduces accumulated timing drift.
+    nextExportTime = nextExportTime + EXPORT_INTERVAL
+
+    -- If DCS jumped forward significantly, do not attempt to generate
+    -- many old samples in one callback.
+    if nextExportTime < t - EXPORT_INTERVAL then
+        nextExportTime = t + EXPORT_INTERVAL
     end
 
     if not out then
@@ -109,10 +141,12 @@ function LuaExportAfterNextFrame()
         return
     end
 
+    exportedFrame = exportedFrame + 1
+
     out:write(string.format(
         "{\"%s\":%d,\"%s\":%.6f,\"%s\":[",
         FRAME_KEY,
-        frame,
+        exportedFrame,
         TIMESTAMP_KEY,
         t,
         UNITS_KEY
@@ -122,7 +156,6 @@ function LuaExportAfterNextFrame()
 
     for id, obj in pairs(objects) do
         if obj and obj.Type and obj.LatLongAlt and obj.Position then
-
             if not first then
                 out:write(",")
             end
@@ -146,7 +179,6 @@ function LuaExportAfterNextFrame()
                 "\"%s\":%.6f}",
 
                 ID_KEY, id,
-
                 NAME_KEY, jstr(obj.Name),
 
                 LEVEL1_KEY, num(obj.Type.level1),
